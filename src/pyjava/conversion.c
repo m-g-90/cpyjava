@@ -99,7 +99,7 @@ PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj){
 
         //if no conversion, wrap object
         PyTypeObject * type = pyjava_classAsType(env,klass);
-        PyJavaObject * ret = PyObject_New(PyJavaObject, type);
+        PyJavaObject * ret = (PyJavaObject *) pyjava_malloc(sizeof(PyJavaObject));
         Py_DecRef((PyObject*)type);
         ret->obj = PYJAVA_ENVCALL(env,NewGlobalRef,obj);
         pyjava_free((void*)name);

@@ -29,7 +29,7 @@ pyjava_type_dealloc(PyJavaObject * self)
 {
     jobject obj = self->obj;
     self->obj = NULL;
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    pyjava_free(self);
     PYJAVA_YIELD_GIL(gstate);
     PYJAVA_START_JAVA(env);
     PYJAVA_ENVCALL(env,DeleteGlobalRef,obj);

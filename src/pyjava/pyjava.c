@@ -31,7 +31,7 @@
 #endif
 
 #ifdef PYJAVA_JVM_DLOPEN
-        #include <dlfnc.h>
+        #include <dlfcn.h>
 #endif
 
 #ifdef __cplusplus
@@ -334,7 +334,8 @@ JNIEXPORT void JNICALL pyjava_registerObject(JNIEnv * env,jstring name,jobject o
                 PyObject * val = pyjava_asPyObject(env,object);
                 if (PyErr_Occurred()){
                     PyErr_Clear();
-                    PYJAVA_ENVCALL(env,ThrowNew,PYJAVA_ENVCALL(env,FindClass,"java/lang/Exception"),"Failed to convert java object to python object");
+                    jclass excclass = PYJAVA_ENVCALL(env,FindClass,"java/lang/Exception");
+                    PYJAVA_ENVCALL(env,ThrowNew,excclass,"Failed to convert java object to python object");
                 } else {
                     PyDict_SetItemString(pyjava_getRegisteredObjects(),tmp,val);
                     Py_DecRef(val);
