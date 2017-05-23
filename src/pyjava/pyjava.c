@@ -30,6 +30,10 @@
 #endif
 #endif
 
+#ifdef PYJAVA_JVM_DLOPEN
+        #import <dlfnc.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -47,9 +51,9 @@ int pyjava_initJVM() {
         }
 #endif
 #ifdef PYJAVA_JVM_DLOPEN
-        if (!getCreatedJavaVMs){
+        if (!createJavaVM){
             typedef jint JNICALL (*createJavaVM_t)(JavaVM **, void **, void *) = NULL;
-            getCreatedJavaVMs = (createJavaVM_t) dlsym(NULL,"JNI_CreateJavaVM");
+            createJavaVM = (createJavaVM_t) dlsym(NULL,"JNI_CreateJavaVM");
         }
 #endif
 
