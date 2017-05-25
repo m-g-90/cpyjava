@@ -17,10 +17,10 @@
  */
 
 #include "pyjava/pyjava.h"
-#include "pyjava/pyjava_jni.h"
 #include "pyjava/type.h"
 #include "pyjava/conversion.h"
 #include "pyjava/memory.h"
+#include "pyjava/jvm.h"
 
 #ifndef __cplusplus
 #ifdef _MSC_VER
@@ -39,6 +39,7 @@ extern "C"{
 #endif
 
 static JavaVM * pyjava_jvmptr = NULL;
+typedef jint (*createJavaVM_t)(JavaVM **, void **, void *) ;
 
 int pyjava_initJVM() {
 
@@ -52,8 +53,15 @@ int pyjava_initJVM() {
 #endif
 #ifdef PYJAVA_JVM_DLOPEN
         if (!createJavaVM){
-            typedef jint JNICALL (*createJavaVM_t)(JavaVM **, void **, void *) ;
-            createJavaVM = (createJavaVM_t) dlsym(NULL,"JNI_CreateJavaVM");
+            void * handle = dlopen("jvm",RTLD_LOCAL);
+            if (handle){
+                createJavaVM = (createJavaVM_t) dlsym(handle,"JNI_CreateJavaVM");
+            } else {
+                printf("%s",dlerror());
+            }
+            if (!createJavaVM){
+                createJavaVM = (createJavaVM_t) dlsym(NULL,"JNI_CreateJavaVM");
+            }
         }
 #endif
 
@@ -112,6 +120,11 @@ JavaVM * pyjava_getJVM(){
                     pyjava_jvmptr = vm;
             }
         }
+
+        if (!pyjava_jvmptr){
+            pyjava_initJVM();
+        }
+
     }
 
 	return pyjava_jvmptr;
@@ -125,7 +138,11 @@ static thread_local int _pyjava_enter_exit_env_borrowed = 0;
 static thread_local unsigned _pyjava_enter_exit_count = 0;
 void pyjava_enter(){
     if (_pyjava_enter_exit_count==0){
-        _pyjava_start_java(&_pyjava_enter_exit_env,&_pyjava_enter_exit_env_borrowed);
+        JNIEnv * env = NULL;
+        int bor = 0;
+        _pyjava_start_java(&env,&bor);
+        _pyjava_enter_exit_env = env;
+        _pyjava_enter_exit_env_borrowed=bor;
     }
     _pyjava_enter_exit_count++;
 }
@@ -133,7 +150,11 @@ void pyjava_enter(){
 void pyjava_exit(){
     _pyjava_enter_exit_count--;
     if (_pyjava_enter_exit_count==0){
-        _pyjava_end_java(&_pyjava_enter_exit_env,&_pyjava_enter_exit_env_borrowed);
+        JNIEnv * env = _pyjava_enter_exit_env;
+        int bor = _pyjava_enter_exit_env_borrowed;
+        _pyjava_end_java(&env,&bor);
+        _pyjava_enter_exit_env = env;
+        _pyjava_enter_exit_env_borrowed=bor;
     }
 }
 
@@ -144,18 +165,24 @@ void _pyjava_start_java(JNIEnv ** env, int * borrowed){
         *env = _pyjava_env;
     } else {
         JavaVM * vm = pyjava_getJVM();
-        if (PYJAVA_ENVCALL(vm,GetEnv,(void**)env,JNI_VERSION_1_8) == JNI_OK){
-            _pyjava_env = *env;
-            *borrowed = 2;
+        if (vm){
+            if (PYJAVA_ENVCALL(vm,GetEnv,(void**)env,JNI_VERSION_1_8) == JNI_OK){
+                _pyjava_env = *env;
+                *borrowed = 2;
+            } else {
+                PYJAVA_ENVCALL(vm,AttachCurrentThread,(void **)env, NULL);
+                _pyjava_env = *env;
+                *borrowed = 0;
+            }
         } else {
-            PYJAVA_ENVCALL(vm,AttachCurrentThread,(void **)env, NULL);
-            _pyjava_env = *env;
-            *borrowed = 0;
+            *borrowed = 1;
+            *env = NULL;
         }
     }
 }
 
 void _pyjava_end_java(JNIEnv ** env, int * borrowed){
+    *env=NULL;
     if (*borrowed){
         if (*borrowed == 2){
             *borrowed = 1;
@@ -170,6 +197,7 @@ void _pyjava_end_java(JNIEnv ** env, int * borrowed){
 
 static PyObject * pyjava_getType(PyObject *self, PyObject *args)
 {
+    (void)self;
     const char *name = NULL;
     PyObject * classloader = NULL;
 
@@ -193,21 +221,10 @@ static PyObject * pyjava_getType(PyObject *self, PyObject *args)
 
     return ret;
 }
-static PyObject * _pyjava_class_getName(JNIEnv * env,jclass klass){
-    jclass klassklass = PYJAVA_ENVCALL(env,GetObjectClass,klass);
-    jmethodID toString = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getName","()Ljava/lang/String;");
-    jstring jname = PYJAVA_ENVCALL(env,CallObjectMethod,klass,toString);
-    PYJAVA_IGNORE_EXCEPTION(env);
-    const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
-    PyObject * ret = PyUnicode_FromString(tmp);
-    PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
-    PYJAVA_ENVCALL(env,DeleteLocalRef,jname);
-    PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);
-    return ret;
-}
-jclass _pyjava_getClass(JNIEnv * env, PyTypeObject * type);
+
 
 static PyObject * pyjava_callMethod(PyObject *self, PyObject *_args) {
+    (void)self;
 
     PyObject * obj = NULL;
     const char * methname = NULL;
@@ -230,6 +247,7 @@ static PyObject * pyjava_callMethod(PyObject *self, PyObject *_args) {
 
 }
 static PyObject * pyjava_readField(PyObject *self, PyObject *_args) {
+    (void)self;
 
     PyObject * obj = NULL;
     const char * methname = NULL;
@@ -252,6 +270,7 @@ static PyObject * pyjava_readField(PyObject *self, PyObject *_args) {
 }
 
 static PyObject * pyjava_writeField(PyObject *self, PyObject *_args) {
+    (void)self;
 
     PyObject * obj = NULL;
     PyObject * val = NULL;
@@ -275,17 +294,28 @@ static PyObject * pyjava_writeField(PyObject *self, PyObject *_args) {
 
 }
 static PyObject * pyjava_with_java_enter(PyObject * self, PyObject *_args){
+    (void)self;
+    (void)_args;
+
     pyjava_enter();
     Py_RETURN_TRUE;
 }
 static PyObject * pyjava_with_java_exit(PyObject * self, PyObject *_args){
+    (void)self;
+    (void)_args;
+
     pyjava_exit();
     Py_RETURN_TRUE;
 }
 static PyObject * pyjava_mem_stat(PyObject * self, PyObject *_args){
+    (void)self;
+    (void)_args;
+
     return pyjava_memory_statistics();
 }
 static PyObject * pyjava_symbols(PyObject * _dont_care, PyObject *_args){
+    (void)_dont_care;
+
     PyObject * self;
     if (!PyArg_ParseTuple(_args, "O", &self)){
         if (!PyErr_Occurred())
@@ -324,7 +354,8 @@ PyObject * pyjava_getRegisteredObjects(){
     return registeredObjects;
 }
 
-JNIEXPORT void JNICALL pyjava_registerObject(JNIEnv * env,jstring name,jobject object){
+JNIEXPORT void JNICALL pyjava_registerObject(JNIEnv * env,jobject dont_care,jstring name,jobject object){
+    (void)dont_care;
     if (name){
         const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,name, 0);
         if (tmp){
@@ -366,7 +397,11 @@ static struct PyModuleDef cpyjavamodule = {
     "cpyjava",
     "",
 	-1,
-	cpyjavamethods	
+    cpyjavamethods,
+    0,
+    0,
+    0,
+    0
 };
 
 PyMODINIT_FUNC PyInit_cpyjava(void) {

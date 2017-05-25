@@ -21,6 +21,7 @@
 #include "pyjava/type.h"
 #include "pyjava/method_cache.h"
 #include "pyjava/config.h"
+#include "pyjava/jvm.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -89,7 +90,6 @@ void pyjava_typecache_gc(){
 void pyjava_typecache_reset(){
 
     for (size_t i = 0;i<PYJAVA_CFG_TYPE_CACHE_BUCKETS;i++){
-        PyJavaType * prev = NULL;
         PyJavaType * cur = typemap[i];
         while (cur){
             PyJavaType * del = cur;

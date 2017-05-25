@@ -19,6 +19,7 @@
 
 #include "pyjava/method_cache.h"
 #include "pyjava/pyjava.h"
+#include "pyjava/jvm.h"
 
 #ifdef __cplusplus
 extern "C"{

@@ -19,21 +19,154 @@
 #include "pyjava/conversion.h"
 #include "pyjava/type.h"
 #include "pyjava/memory.h"
+#include "pyjava/jvm.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-static const char * _pyjava_class_getName(JNIEnv * env,jclass klass){
-    jclass klassklass = PYJAVA_ENVCALL(env,GetObjectClass,klass);
-    jmethodID toString = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getName","()Ljava/lang/String;");
-    jstring jname = PYJAVA_ENVCALL(env,CallObjectMethod,klass,toString);
-    const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
-    const char * ret = strcpy((char*)pyjava_malloc(sizeof(char)*strlen(tmp)+1),tmp);
-    PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
-    PYJAVA_ENVCALL(env,DeleteLocalRef,jname);
-    PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);
-    return ret;
+pyjava_converter_j2p_t _pyjava_getJ2P(PyJavaConverter * conv,int index){
+    if (index < 0){
+        return NULL;
+    }
+    if (index > conv->convcountj2p){
+        return NULL;
+    }
+    if (index == 0){
+        return conv->convj2p0;
+    } else {
+        return conv->convj2p1u[index-1];
+    }
+}
+pyjava_converter_p2j_t _pyjava_getP2J(PyJavaConverter * conv,int index){
+    if (index < 0){
+        return NULL;
+    }
+    if (index > conv->convcountp2j){
+        return NULL;
+    }
+    if (index == 0){
+        return conv->convp2j0;
+    } else {
+        return conv->convp2j1u[index-1];
+    }
+}
+void _pyjava_addJ2P(PyJavaConverter * conv,pyjava_converter_j2p_t fnc){
+    if (!fnc)
+        return;
+    if (conv->convcountj2p==0){
+        conv->convj2p0 = fnc;
+    } else {
+        pyjava_converter_j2p_t * tmp = (pyjava_converter_j2p_t *)pyjava_malloc(sizeof(pyjava_converter_j2p_t)*conv->convcountj2p);
+        if (conv->convcountj2p>1){
+            memcpy(tmp,conv->convj2p1u,sizeof(pyjava_converter_j2p_t)*(conv->convcountj2p-1));
+        }
+        tmp[conv->convcountj2p-1] = fnc;
+        pyjava_free(conv->convj2p1u);
+        conv->convj2p1u = tmp;
+    }
+    conv->convcountj2p++;
+}
+void _pyjava_addP2J(PyJavaConverter * conv,pyjava_converter_p2j_t fnc){
+    if (!fnc)
+        return;
+    if (conv->convcountp2j==0){
+        conv->convp2j0 = fnc;
+    } else {
+        pyjava_converter_p2j_t * tmp = (pyjava_converter_p2j_t *)pyjava_malloc(sizeof(pyjava_converter_p2j_t)*conv->convcountp2j);
+        if (conv->convcountp2j>1){
+            memcpy(tmp,conv->convp2j1u,sizeof(pyjava_converter_p2j_t)*(conv->convcountp2j-1));
+        }
+        tmp[conv->convcountp2j-1] = fnc;
+        pyjava_free(conv->convp2j1u);
+        conv->convp2j1u = tmp;
+    }
+    conv->convcountp2j++;
+}
+void _pyjava_addP2J_rec(PyJavaType * type,pyjava_converter_p2j_t fnc){
+
+    if (!pyjava_isJavaClass((PyTypeObject*)type)){
+        return;
+    }
+
+    _pyjava_addP2J(&(type->converter),fnc);
+
+    if (type->pto.tp_bases && (PyTuple_CheckExact(type->pto.tp_bases))){
+        for (Py_ssize_t i = 0;i<PyTuple_Size(type->pto.tp_bases);i++){
+            _pyjava_addP2J_rec((PyJavaType*)PyTuple_GET_ITEM(type->pto.tp_bases,i),fnc);
+        }
+    }
+
+}
+
+static PyObject * _pyjava_convj2p(JNIEnv * env,PyJavaType * type, jobject obj){
+    if (!pyjava_isJavaClass((PyTypeObject*)type)){
+        return NULL;
+    }
+    for (int i = 0;i<type->converter.convcountj2p;i++){
+        PyObject * ret = _pyjava_getJ2P(&(type->converter),i)(env,type->klass,obj);
+        if (PyErr_Occurred()){
+            PyErr_Clear();
+            if (ret){
+                Py_DecRef(ret);
+                ret = NULL;
+            }
+        }
+        if (ret){
+            return ret;
+        }
+    }
+    if (type->pto.tp_bases && (PyTuple_CheckExact(type->pto.tp_bases))){
+        for (Py_ssize_t i = 0;i<PyTuple_Size(type->pto.tp_bases);i++){
+            PyObject * ret = _pyjava_convj2p(env,(PyJavaType*)PyTuple_GET_ITEM(type->pto.tp_bases,i),obj);
+            if (ret){
+                return ret;
+            }
+        }
+    }
+
+
+    return NULL;
+}
+
+PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj){
+    if (!obj){
+        Py_RETURN_NONE;
+    }
+    jclass klass = PYJAVA_ENVCALL(env,GetObjectClass,obj);
+
+
+    if (klass){
+        // get type and check for converters
+
+        PyJavaType * type = (PyJavaType*) pyjava_classAsType(env,klass);
+
+        if (type) {
+
+            PyObject * ret = _pyjava_convj2p(env,type,obj);
+
+            if (!ret){
+                PyJavaObject * r = (PyJavaObject *) pyjava_malloc(sizeof(PyJavaObject));
+                r->ob_base.ob_refcnt = 1;
+                r->ob_base.ob_type = &(type->pto);
+                r->obj = PYJAVA_ENVCALL(env,NewGlobalRef,obj);
+                ret = (PyObject*) r;
+            } else {
+                Py_DecRef((PyObject*)type);
+            }
+
+            return ret;
+
+        }
+
+        PyErr_SetString(PyExc_TypeError,"Failed to convert java object to python (No type object)");
+        return NULL;
+
+    }
+
+    PyErr_SetString(PyExc_TypeError,"Failed to convert java object to python (class not found)");
+    return NULL;
+
 }
 
 int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalue * ret){
@@ -45,6 +178,13 @@ int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalu
         //TODO maybe java to java conversions make sense in some cases
         if (PYJAVA_ENVCALL(env,IsInstanceOf,((PyJavaObject*)obj)->obj ,klass)){
             ret->l = PYJAVA_ENVCALL(env,NewLocalRef,((PyJavaObject*)obj)->obj);
+            return 1;
+        }
+    }
+    if (PyType_CheckExact(obj) && pyjava_isJavaClass((PyTypeObject*)obj)){
+        //TODO maybe java to java conversions make sense in some cases
+        if (PYJAVA_ENVCALL(env,IsInstanceOf,((PyJavaType*)obj)->klass ,klass)){
+            ret->l = PYJAVA_ENVCALL(env,NewLocalRef,((PyJavaType*)obj)->klass);
             return 1;
         }
     }
@@ -64,49 +204,53 @@ int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalu
             break;
         }
     }
-    const char * name = _pyjava_class_getName(env,klass);
-    if (PyUnicode_CheckExact(obj) && !strcmp(name,"java.lang.String")){
-        pyjava_free((char *)name);
-        ret->l = PYJAVA_ENVCALL(env,NewStringUTF,PyUnicode_AsUTF8(obj));
-        if (PYJAVA_ENVCALL(env,IsInstanceOf,ret->l,klass)){
-            return 1;
-        } else {
-            PYJAVA_ENVCALL(env,DeleteLocalRef,ret->l);
-            return 0;
+
+    if (klass){
+        PyJavaType * type = (PyJavaType*) pyjava_classAsType(env,klass);
+        if (type){
+            for (int i = 0;i<type->converter.convcountp2j;i++){
+                jobject lret = _pyjava_getP2J(&(type->converter),i)(env,type->klass,obj);
+                Py_DecRef((PyObject*)type);
+                if (lret){
+                    if (PYJAVA_ENVCALL(env,IsInstanceOf,lret,klass)){
+                        ret->l = lret;
+                        return 1;
+                    } else {
+                        PYJAVA_ENVCALL(env,DeleteLocalRef,lret);
+                    }
+                }
+            }
         }
     }
-    pyjava_free((char *)name);
+
     return 0;
 }
 
-PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj){
-    if (!obj){
-        Py_RETURN_NONE;
-    }
-    jclass klass = PYJAVA_ENVCALL(env,GetObjectClass,obj);
-    if (klass){
-        const char * name = _pyjava_class_getName(env,klass);
-        if (name){
-            if (!strcmp(name,"java.lang.String")){
-                const char * tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,obj, 0);
-                PyObject * ret = PyUnicode_FromString(tmp);
-                PYJAVA_ENVCALL(env,ReleaseStringUTFChars, obj, tmp);
-                PYJAVA_ENVCALL(env,DeleteLocalRef,klass);
-                pyjava_free((void*)name);
-                return ret;
-            }
-        }
 
-        //if no conversion, wrap object
-        PyTypeObject * type = pyjava_classAsType(env,klass);
-        PyJavaObject * ret = (PyJavaObject *) pyjava_malloc(sizeof(PyJavaObject));
-        Py_DecRef((PyObject*)type);
-        ret->obj = PYJAVA_ENVCALL(env,NewGlobalRef,obj);
-        pyjava_free((void*)name);
-        return (PyObject*)ret;
-    }
-    Py_RETURN_NONE;
+static PyObject * str_j2p(JNIEnv* env,jclass klass,jobject obj){
+    (void)klass;
+    const char * tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,obj, 0);
+    PyObject * ret = PyUnicode_FromString(tmp);
+    PYJAVA_ENVCALL(env,ReleaseStringUTFChars, obj, tmp);
+    return ret;
 }
+
+static jobject str_p2j(JNIEnv * env,jclass klass,PyObject * obj){
+    (void)klass;
+    if (PyUnicode_CheckExact(obj)){
+        return PYJAVA_ENVCALL(env,NewStringUTF,PyUnicode_AsUTF8(obj));
+    }
+    return NULL;
+}
+
+void pyjava_conversion_initType(JNIEnv * env,PyJavaType * type){
+
+    if (!strcmp(type->pto.tp_name,"java.lang.String")){
+        pyjava_registerConversion(env,type->klass,str_j2p,str_p2j);
+    }
+
+}
+
 
 int pyjava_exception_java2python(JNIEnv * env){
     if (PYJAVA_ENVCALL(env,ExceptionCheck)){
@@ -118,6 +262,17 @@ int pyjava_exception_java2python(JNIEnv * env){
     }
 }
 
+
+void pyjava_registerConversion(JNIEnv * env, jclass klass, pyjava_converter_j2p_t cj2p, pyjava_converter_p2j_t cp2j){
+
+    PyJavaType * type = (PyJavaType*) pyjava_classAsType(env,klass);
+
+    if (type){
+        _pyjava_addJ2P(&(type->converter),cj2p);
+        _pyjava_addP2J(&(type->converter),cp2j);
+    }
+
+}
 
 #ifdef __cplusplus
 }

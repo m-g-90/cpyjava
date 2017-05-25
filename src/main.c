@@ -1,18 +1,15 @@
 
 
 #include "pyjava/pyjava.h"
+
 #include <stdio.h>
 
 int main(int argc,const char ** argv) {
+    (void)argc;
+    (void)argv;
 
     PyImport_AppendInittab("cpyjava", &PyInit_cpyjava);
     Py_Initialize();
-    pyjava_initJVM();
-    if (pyjava_getJVM()){
-        printf("created a jvm\n");
-    } else {
-        printf("failed to create a jvm\n");
-    }
 
     pyjava_enter();
 

@@ -16,8 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef PYJAVA_CONFIG_H
+#define PYJAVA_CONFIG_H
+
+#include <Python.h>
+#include <jni.h>
+
 
 
 #define PYJAVA_CFG_TYPE_CACHE_BUCKETS (1024*1024)

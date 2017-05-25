@@ -16,8 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef METHOD_CACHE_H
-#define METHOD_CACHE_H
+#ifndef PYJAVA_METHOD_CACHE_H
+#define PYJAVA_METHOD_CACHE_H
 
 #include <jni.h>
 #include <Python.h>

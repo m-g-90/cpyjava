@@ -36,7 +36,7 @@ typedef struct mem_block {
     static size_t block##I##_freecount = 0;
 
 
-
+PYJAVA_MEMORY_DECL(32)
 PYJAVA_MEMORY_DECL(64)
 PYJAVA_MEMORY_DECL(512)
 PYJAVA_MEMORY_DECL(1024)
@@ -77,6 +77,7 @@ static void _pyjava_free(void * ptr){
 
 void * pyjava_malloc(size_t size){
     pyjava_malloc_size(64)
+    pyjava_malloc_size(32)
     pyjava_malloc_size(512)
     pyjava_malloc_size(1024)
     pyjava_malloc_size(4096)
@@ -96,6 +97,7 @@ void pyjava_free(void * ptr){
     if (!ptr)
         return;
     mem_block * ret = ((mem_block*)ptr)-1;
+    pyjava_malloc_free(32)
     pyjava_malloc_free(64)
     pyjava_malloc_free(512)
     pyjava_malloc_free(1024)
@@ -118,6 +120,7 @@ PyObject * pyjava_memory_statistics(){
     size_t tused = 0;
     size_t tfree = 0;
     size_t tover = 0;
+    PYJAVA_MEMORY_APPEND(32)
     PYJAVA_MEMORY_APPEND(64)
     PYJAVA_MEMORY_APPEND(512)
     PYJAVA_MEMORY_APPEND(1024)

@@ -19,16 +19,39 @@
 #ifndef PYJAVA_CONVERSION_H
 #define PYJAVA_CONVERSION_H
 
-#include "pyjava/pyjava.h"
+#include "pyjava/config.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
+
+
 int pyjava_asJObject(JNIEnv * env, PyObject * obj, jclass klass, char ntype, jvalue * ret);
 PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj);
 
 int pyjava_exception_java2python(JNIEnv * env);
+
+
+typedef PyObject * (*pyjava_converter_j2p_t)(JNIEnv * env,jclass klass,jobject object);
+typedef jobject (*pyjava_converter_p2j_t)(JNIEnv * env,jclass klass,PyObject * obj);
+/**
+ * @brief registerConversion allows the register a custom converter
+ * @param env
+ * @param klass
+ * @param cj2p
+ * @param cp2j
+ */
+void pyjava_registerConversion(JNIEnv * env,jclass klass,pyjava_converter_j2p_t cj2p,pyjava_converter_p2j_t cp2j);
+
+typedef struct PyJavaConverter {
+    pyjava_converter_j2p_t convj2p0;
+    pyjava_converter_p2j_t convp2j0;
+    pyjava_converter_j2p_t * convj2p1u;
+    pyjava_converter_p2j_t * convp2j1u;
+    int convcountj2p;
+    int convcountp2j;
+} PyJavaConverter;
 
 #ifdef __cplusplus
 }

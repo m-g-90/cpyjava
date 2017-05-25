@@ -20,6 +20,7 @@
 #define PYJAVA_TYPE_H
 
 #include "pyjava/pyjava.h"
+#include "pyjava/conversion.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -77,6 +78,7 @@ typedef struct PyJavaType {
     struct PyJavaField * fields[PYJAVA_SYMBOL_BUCKET_COUNT];
     PyObject * dir;
     struct PyJavaType * _tc_next;
+    struct PyJavaConverter converter;
 } PyJavaType;
 
 int pyjava_isJavaClass(PyTypeObject * type);

@@ -16,8 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TYPE_CACHE_H
-#define TYPE_CACHE_H
+#ifndef PYJAVA_TYPE_CACHE_H
+#define PYJAVA_TYPE_CACHE_H
 
 #include <jni.h>
 

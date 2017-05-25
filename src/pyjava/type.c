@@ -20,13 +20,16 @@
 #include "pyjava/conversion.h"
 #include "pyjava/memory.h"
 #include "pyjava/type_cache.h"
+#include "pyjava/jvm.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-pyjava_type_dealloc(PyJavaObject * self)
+void pyjava_type_dealloc(PyJavaObject * self)
 {
+    (void)self;
+
     jobject obj = self->obj;
     self->obj = NULL;
     pyjava_free(self);
@@ -205,10 +208,17 @@ char pyjava_getNType(JNIEnv * env,jclass klass){
 
 static int pyjava_type_init(PyJavaObject *self, PyObject *args, PyObject *kwds)
 {
+    (void)self;
+    (void)args;
+    (void)kwds;
+
     return 0;
 }
 
 PyObject *pyjava_type_alloc(PyTypeObject *self, Py_ssize_t nitems){
+    (void)self;
+    (void)nitems;
+
     PyErr_SetString(PyExc_Exception,"don't use tp_alloc of pyjava objects");
     return NULL;
 }
@@ -231,10 +241,6 @@ PyObject * pyjava_type_new(PyJavaType * type, PyObject *args, PyObject *kwds){
         return NULL;
     }
 
-    Py_ssize_t arglen = 0;
-    if (args) {
-        arglen = PyTuple_Size(args);
-    }
     Py_ssize_t kwarglen = 0;
     if (kwds) {
         kwarglen = PyDict_Size(kwds);
@@ -261,40 +267,6 @@ PyObject * pyjava_type_new(PyJavaType * type, PyObject *args, PyObject *kwds){
 
 }
 
-#define PYJAVA_TYPEMAP_SIZE (256*256)
-static PyJavaType * typemap[PYJAVA_TYPEMAP_SIZE];
-static PyJavaType * typeset[PYJAVA_TYPEMAP_SIZE];
-static jint typeset_ptr_hash(void *ptr){
-    return (jint)(((intptr_t)ptr)/sizeof(PyJavaType));
-}
-
-static jclass _pyjava_identityHash_system = NULL;
-static jmethodID _pyjava_identityHash_system_identityHash = NULL;
-static jint _pyjava_identityHash(JNIEnv * env,jobject obj){
-	
-    if (!_pyjava_identityHash_system){
-        jclass system = PYJAVA_ENVCALL(env,FindClass, "java/lang/System"); //TODO store global reference
-        _pyjava_identityHash_system = PYJAVA_ENVCALL(env,NewGlobalRef,system);
-        PYJAVA_ENVCALL(env,DeleteLocalRef,system);
-    }
-	
-    if (!_pyjava_identityHash_system){
-        return 0;
-	}
-	
-    if (!_pyjava_identityHash_system_identityHash){
-        _pyjava_identityHash_system_identityHash = PYJAVA_ENVCALL(env,GetStaticMethodID,_pyjava_identityHash_system,"identityHashCode","(Ljava/lang/Object;)I");
-    }
-
-    if (!_pyjava_identityHash_system_identityHash){
-        PyErr_Clear();
-        return 0;
-    }
-
-    return PYJAVA_ENVCALL(env,CallStaticIntMethod,_pyjava_identityHash_system,_pyjava_identityHash_system_identityHash,obj);
-	
-}
-
 int pyjava_isJavaClass(PyTypeObject * type){
     if (type){
         return (void*)type->tp_new == (void*)pyjava_type_new;
@@ -308,16 +280,14 @@ jclass _pyjava_getClass(JNIEnv * env, PyTypeObject * type){
 }
 
 
-#include "pyjava/type_helpers.hc"
+#include "pyjava/type_helpers.h"
 
 
 PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,PyObject * tuple){
-    int isClass = 0;
     PyJavaType * type;
     PyJavaObject * obj;
     if (PyType_Check(_obj)){
         if (pyjava_isJavaClass((PyTypeObject*)_obj)){
-            isClass = 1;
             type=(PyJavaType*)_obj;
             obj = NULL;
         } else {
@@ -326,7 +296,6 @@ PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,P
         }
     } else {
         if (pyjava_isJavaClass(_obj->ob_type)){
-            isClass = 0;
             type=(PyJavaType*)_obj->ob_type;
             obj=(PyJavaObject*)_obj;
         } else {
@@ -396,12 +365,10 @@ PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,P
 }
 
 PyObject * pyjava_getField(JNIEnv * env, PyObject * _obj,const char * name){
-    int isClass = 0;
     PyJavaType * type;
     PyJavaObject * obj;
     if (PyType_Check(_obj)){
         if (pyjava_isJavaClass((PyTypeObject*)_obj)){
-            isClass = 1;
             type=(PyJavaType*)_obj;
             obj = NULL;
         } else {
@@ -410,7 +377,6 @@ PyObject * pyjava_getField(JNIEnv * env, PyObject * _obj,const char * name){
         }
     } else {
         if (pyjava_isJavaClass(_obj->ob_type)){
-            isClass = 0;
             type=(PyJavaType*)_obj->ob_type;
             obj=(PyJavaObject*)_obj;
         } else {
@@ -451,12 +417,10 @@ PyObject * pyjava_getField(JNIEnv * env, PyObject * _obj,const char * name){
 }
 
 void pyjava_setField(JNIEnv * env, PyObject * _obj,const char * name,PyObject * val){
-    int isClass = 0;
     PyJavaType * type;
     PyJavaObject * obj;
     if (PyType_Check(_obj)){
         if (pyjava_isJavaClass((PyTypeObject*)_obj)){
-            isClass = 1;
             type=(PyJavaType*)_obj;
             obj = NULL;
         } else {
@@ -465,7 +429,6 @@ void pyjava_setField(JNIEnv * env, PyObject * _obj,const char * name,PyObject * 
         }
     } else {
         if (pyjava_isJavaClass(_obj->ob_type)){
-            isClass = 0;
             type=(PyJavaType*)_obj->ob_type;
             obj=(PyJavaObject*)_obj;
         } else {
@@ -510,20 +473,8 @@ void pyjava_setField(JNIEnv * env, PyObject * _obj,const char * name,PyObject * 
     return;
 }
 
-static const char * _pyjava_class_getName(JNIEnv * env,jclass klass){
-    jclass klassklass = PYJAVA_ENVCALL(env,GetObjectClass,klass);
-    jmethodID toString = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getName","()Ljava/lang/String;");
-    jstring jname = PYJAVA_ENVCALL(env,CallObjectMethod,klass,toString);
-    const char * ret = NULL;
-    if (!pyjava_exception_java2python(env)){
-        const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
-        ret = strcpy((char*)malloc(sizeof(char)*strlen(tmp)+1),tmp);
-        PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
-        PYJAVA_ENVCALL(env,DeleteLocalRef,jname);
-    }
-    PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);
-    return ret;
-}
+void pyjava_conversion_initType(JNIEnv * env,PyJavaType * type);
+
 PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
 
 	if (!klass){
@@ -614,6 +565,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                 (initproc)pyjava_type_init,      /* tp_init */
                 (allocfunc)pyjava_type_alloc,                         /* tp_alloc */
                 (newfunc)pyjava_type_new,                         /* tp_new */
+                0,                         /* tp_free*/
                 0,                         /* tp_is_gc For PyObject_IS_GC */
                 0,                         /* tp_bases */
                 0,                         /* tp_mro method resolution order */
@@ -1141,7 +1093,6 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
             ret->pto.tp_dict = PyDict_New();
             {
                 for (Py_ssize_t i = 0;i<PyTuple_Size(ret->dir);i++){
-                    printf(PyUnicode_AsUTF8(PyTuple_GET_ITEM(ret->dir,i)));
                     PyDict_SetItem(ret->pto.tp_dict,PyTuple_GET_ITEM(ret->dir,i),Py_None);
                 }
             }
@@ -1168,6 +1119,8 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
         }
 
         pyjava_typecache_register(env,ret);
+
+        pyjava_conversion_initType(env,ret);
 
     }
 
