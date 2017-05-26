@@ -188,8 +188,37 @@ int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalu
             return 1;
         }
     }
+    int isObject = 0;
     if (ntype){
         switch (ntype){
+        case 'Z':
+            if (PyBool_Check(obj)){
+                ret->z = PyObject_IsTrue(obj);
+                if (!PyErr_Occurred()){
+                    return 1;
+                } else {
+                    PyErr_Clear();
+                }
+            }
+            break;
+        case 'B':
+            if (PyLong_CheckExact(obj)){
+                ret->b = (jbyte) PyLong_AsLongLong(obj);
+                return 1;
+            }
+            break;
+        case 'C':
+            if (PyLong_CheckExact(obj)){
+                ret->c = (jchar) PyLong_AsLongLong(obj);
+                return 1;
+            }
+            break;
+        case 'S':
+            if (PyLong_CheckExact(obj)){
+                ret->s = (jshort) PyLong_AsLongLong(obj);
+                return 1;
+            }
+            break;
         case 'I':
             if (PyLong_CheckExact(obj)){
                 ret->i = (jint) PyLong_AsLongLong(obj);
@@ -202,10 +231,30 @@ int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalu
                 return 1;
             }
             break;
+        case 'F':
+            if (PyFloat_CheckExact(obj)){
+                ret->f = (jfloat) PyFloat_AsDouble(obj);
+                return 1;
+            }
+            break;
+        case 'D':
+            if (PyFloat_CheckExact(obj)){
+                ret->d = (jdouble) PyFloat_AsDouble(obj);
+                return 1;
+            }
+            break;
+        case 'L':
+        case '[':
+            isObject = 1;
+            break;
+        default:
+            printf("Unhandled type");
+            return 0;
+            break;
         }
     }
 
-    if (klass){
+    if (isObject){
         PyJavaType * type = (PyJavaType*) pyjava_classAsType(env,klass);
         if (type){
             for (int i = 0;i<type->converter.convcountp2j;i++){

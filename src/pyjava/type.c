@@ -98,7 +98,6 @@ static PyObject* pyjava_type_getattro( PyObject* self, PyObject* pyname){
     int method = 0;
 
     const char  *name = PyUnicode_AsUTF8(pyname);
-    printf("getattro: %s",name);
     if (!strcmp(name,"__dict__")){
         if (pyjava_isJavaClass(self->ob_type)){
             PyObject * ret = PyDict_New();
