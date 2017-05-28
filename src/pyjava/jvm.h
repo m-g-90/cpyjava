@@ -53,6 +53,13 @@ void _pyjava_end_java(JNIEnv ** env, int * borrowed);
         PYJAVA_ENVCALL(env,ExceptionClear); \
     }
 
+#define PYJAVA_YIELD_GIL(STATE) \
+    PyThreadState *STATE; \
+    STATE = PyEval_SaveThread()
+
+#define PYJAVA_RESTORE_GIL(STATE) \
+    PyEval_RestoreThread(STATE)
+
 
 #endif // JVM_H
 

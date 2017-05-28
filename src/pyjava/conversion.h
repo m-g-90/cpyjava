@@ -44,6 +44,9 @@ typedef jobject (*pyjava_converter_p2j_t)(JNIEnv * env,jclass klass,PyObject * o
  */
 void pyjava_registerConversion(JNIEnv * env,jclass klass,pyjava_converter_j2p_t cj2p,pyjava_converter_p2j_t cp2j);
 
+typedef int (*pyjava_native_converter_j2p_t)(JNIEnv * env,char ntype,PyObject * object,jvalue * value);
+void pyjava_registerNativeConversion(char ntype,pyjava_native_converter_j2p_t fnc);
+
 typedef struct PyJavaConverter {
     pyjava_converter_j2p_t convj2p0;
     pyjava_converter_p2j_t convp2j0;

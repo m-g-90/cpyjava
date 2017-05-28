@@ -42,24 +42,6 @@ void pyjava_exit();
 JNIEXPORT void JNICALL pyjava_registerObject(JNIEnv *,jobject dont_care, jstring name,jobject object);
 
 
-#define PYJAVA_YIELD_GIL(STATE) \
-    PyThreadState *STATE; \
-    STATE = PyEval_SaveThread()
-
-#define PYJAVA_RESTORE_GIL(STATE) \
-    PyEval_RestoreThread(STATE)
-
-#define PYJAVA_JVMFROMENV(jvm,env,errreturn) \
-	if (!env){\
-		errreturn;\
-	}\
-	JavaVM * jvm;\
-	env->GetJavaVM(&jvm);\
-	if (!jvm){\
-		errreturn;\
-	}
-
-
 PyMODINIT_FUNC PyInit_cpyjava(void);
 
 #ifdef __cplusplus

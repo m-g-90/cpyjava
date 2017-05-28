@@ -169,6 +169,12 @@ PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj){
 
 }
 
+#define PYJAVA_RNC_DEF(T) \
+    static pyjava_native_converter_j2p_t * native_converters_##T = NULL;\
+    static int native_converters_##T##_count = 0
+
+PYJAVA_RNC_DEF(L);
+
 int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalue * ret){
     if (!obj || obj==Py_None){
         memset(ret,0,sizeof(jvalue));
@@ -202,7 +208,7 @@ int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalu
             }
             break;
         case 'B':
-            if (PyLong_CheckExact(obj)){
+            if (PyLong_Check(obj)){
                 ret->b = (jbyte) PyLong_AsLongLong(obj);
                 return 1;
             }
@@ -322,6 +328,32 @@ void pyjava_registerConversion(JNIEnv * env, jclass klass, pyjava_converter_j2p_
     }
 
 }
+
+
+#define PYJAVA_RNC_ADD(T) \
+    if (ntype == ((#T)[0])) {\
+        pyjava_native_converter_j2p_t * tmp = (pyjava_native_converter_j2p_t *) pyjava_malloc( sizeof(pyjava_native_converter_j2p_t) *(native_converters_##T##_count + 1));\
+        if (native_converters_##T##_count>0){\
+            memcpy(tmp,native_converters_##T,sizeof(pyjava_native_converter_j2p_t)*native_converters_##T##_count);\
+        }\
+        tmp[native_converters_##T##_count] = fnc;\
+        if (native_converters_##T##_count>0){\
+            pyjava_free(native_converters_##T);\
+        }\
+        native_converters_##T = tmp;\
+        native_converters_##T##_count++;\
+        return;\
+    }
+
+
+void pyjava_registerNativeConversion(char ntype,pyjava_native_converter_j2p_t fnc){
+    if (!fnc)
+        return;
+
+    PYJAVA_RNC_ADD(L);
+
+}
+
 
 #ifdef __cplusplus
 }
