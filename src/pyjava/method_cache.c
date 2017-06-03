@@ -1,6 +1,6 @@
 /*
  * This file is part of the cpyjava distribution.
- *   (https://bitbucket.org/j-f-v/cpyjava)
+ *   (https://github.com/m-g-90/cpyjava)
  * Copyright (c) 2017 Marc Greim.
  *
  * cpyjava is free software: you can redistribute it and/or modify
