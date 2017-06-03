@@ -36,7 +36,11 @@ static PyObject * pyjava_getType(PyObject *self, PyObject *args)
 	
     PYJAVA_START_JAVA(env);
 
-    PyObject * ret = (PyObject*) pyjava_classNameAsType(env,classloader,name);
+    PyObject * ret = NULL;
+
+    if (env){
+        ret = (PyObject*) pyjava_classNameAsType(env,classloader,name);
+    }
 	
     PYJAVA_END_JAVA(env);
 
@@ -63,7 +67,13 @@ static PyObject * pyjava_callMethod(PyObject *self, PyObject *_args) {
     }
 
     PYJAVA_START_JAVA(env);
-    PyObject * ret = pyjava_callFunction(env, obj,methname,args);
+
+    PyObject * ret = NULL;
+
+    if (env){
+        ret = pyjava_callFunction(env, obj,methname,args);
+    }
+
     PYJAVA_END_JAVA(env);
 
     if (!ret && !PyErr_Occurred()){
@@ -85,7 +95,13 @@ static PyObject * pyjava_readField(PyObject *self, PyObject *_args) {
     }
 
     PYJAVA_START_JAVA(env);
-    PyObject * ret = pyjava_getField(env, obj,methname);
+
+    PyObject * ret = NULL;
+
+    if (env){
+        ret = pyjava_getField(env, obj,methname);
+    }
+
     PYJAVA_END_JAVA(env);
 
     if (!ret && !PyErr_Occurred()){
@@ -109,7 +125,11 @@ static PyObject * pyjava_writeField(PyObject *self, PyObject *_args) {
     }
 
     PYJAVA_START_JAVA(env);
-    pyjava_setField(env, obj,methname,val);
+
+    if (env){
+        pyjava_setField(env, obj,methname,val);
+    }
+
     PYJAVA_END_JAVA(env);
 
     if (PyErr_Occurred()){
