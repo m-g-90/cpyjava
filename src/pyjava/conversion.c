@@ -268,32 +268,59 @@ int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalu
             break;
         case 'B':
             if (PyLong_Check(obj)){
-                ret->b = (jbyte) PyLong_AsLongLong(obj);
-                return 1;
+                int ol=0;
+                PY_LONG_LONG val = PyLong_AsLongLongAndOverflow(obj,&ol);
+                if (!ol && (val==(jbyte)val)){
+                    ret->b = (jbyte)val;
+                    return 1;
+                }
             }
             break;
         case 'C':
             if (PyLong_CheckExact(obj)){
-                ret->c = (jchar) PyLong_AsLongLong(obj);
-                return 1;
+                int ol=0;
+                PY_LONG_LONG val = PyLong_AsLongLongAndOverflow(obj,&ol);
+                if (!ol && (val==(jchar)val)){
+                    ret->c = (jchar)val;
+                    return 1;
+                }
             }
+            if (PyUnicode_Check(obj)){
+                if ( (PyUnicode_GET_LENGTH(obj)) == 1 ){
+                    ret->c = (jchar) PyUnicode_ReadChar(obj,0);
+                    return 1;
+                }
+            }
+
             break;
         case 'S':
             if (PyLong_CheckExact(obj)){
-                ret->s = (jshort) PyLong_AsLongLong(obj);
-                return 1;
+                int ol=0;
+                PY_LONG_LONG val = PyLong_AsLongLongAndOverflow(obj,&ol);
+                if (!ol && (val==(jshort)val)){
+                    ret->s = (jshort)val;
+                    return 1;
+                }
             }
             break;
         case 'I':
             if (PyLong_CheckExact(obj)){
-                ret->i = (jint) PyLong_AsLongLong(obj);
-                return 1;
+                int ol=0;
+                PY_LONG_LONG val = PyLong_AsLongLongAndOverflow(obj,&ol);
+                if (!ol && (val==(jint)val)){
+                    ret->i = (jint)val;
+                    return 1;
+                }
             }
             break;
         case 'J':
             if (PyLong_CheckExact(obj)){
-                ret->j = PyLong_AsLongLong(obj);
-                return 1;
+                int ol=0;
+                PY_LONG_LONG val = PyLong_AsLongLongAndOverflow(obj,&ol);
+                if (!ol && (val==(jlong)val)){
+                    ret->j = (jlong)val;
+                    return 1;
+                }
             }
             break;
         case 'F':
