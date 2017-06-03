@@ -168,10 +168,12 @@ static int pyjava_type_setattro( PyObject* self, PyObject* pyname,PyObject * val
 char pyjava_getNType(JNIEnv * env,jclass klass){
     char ret = 0;
     jclass klassklass = PYJAVA_ENVCALL(env,GetObjectClass,klass);
-    jmethodID toString = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getName","()Ljava/lang/String;");
+    jmethodID toString = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getCanonicalName","()Ljava/lang/String;");
     jstring jname = PYJAVA_ENVCALL(env,CallObjectMethod,klass,toString);
     PYJAVA_IGNORE_EXCEPTION(env);
-    const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
+    const char  *tmp = "L";
+    if (jname)
+        tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
     if (!strcmp("void",tmp)){
         ret = 'V';
     } else if (!strcmp("boolean",tmp)){
@@ -190,17 +192,15 @@ char pyjava_getNType(JNIEnv * env,jclass klass){
         ret = 'F';
     } else if (!strcmp("double",tmp)){
         ret = 'D';
-    } else if (tmp[0]=='L'){
-        ret = 'L';
     } else if (tmp[0]=='['){
         ret = '[';
-    } else if (tmp[0]=='('){
-        ret = 'M';
     } else {
-        ret = 0;
+        ret = 'L';
     }
-    PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
-    PYJAVA_ENVCALL(env,DeleteLocalRef,jname);
+    if (jname){
+        PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
+        PYJAVA_ENVCALL(env,DeleteLocalRef,jname);
+    }
     PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);
     return ret;
 }
@@ -511,8 +511,11 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
             PYJAVA_IGNORE_EXCEPTION(env);
             if (jname){
                 const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
+                int off = 0;
+                if (tmp[0]=='c' && tmp[1]=='l' && tmp[2]=='a' && tmp[3]=='s' && tmp[4]=='s' && tmp[5]==' ')
+                    off = 6;
                 pyjava_free(name);
-                name = strcpy((char*)pyjava_malloc(sizeof(char)*strlen(tmp)),tmp);
+                name = strcpy((char*)pyjava_malloc(sizeof(char)*strlen(tmp+off)),tmp+off);
                 PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
                 PYJAVA_ENVCALL(env,DeleteLocalRef,jname);
             }
@@ -869,7 +872,16 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                                         // add dict entry
                                         {
                                             PyObject * str = PyUnicode_FromString(methdef->name);
-                                            PyList_Append(ret->dir,str);
+                                            int found = 0;
+                                            for(Py_ssize_t i = 0;i<PyList_Size(ret->dir);i++){
+                                                if (!PyUnicode_Compare(str,PyList_GET_ITEM(ret->dir,i))){
+                                                    found = 1;
+                                                    break;
+                                                }
+                                            }
+                                            if (!found){
+                                                PyList_Append(ret->dir,str);
+                                            }
                                             Py_DecRef(str);
                                         }
 
