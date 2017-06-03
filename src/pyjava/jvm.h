@@ -21,6 +21,9 @@
 
 #include "pyjava/config.h"
 
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 JavaVM * pyjava_getJVM();
 void pyjava_setJVM(JavaVM * jvm);
@@ -60,6 +63,10 @@ void _pyjava_end_java(JNIEnv ** env, int * borrowed);
 #define PYJAVA_RESTORE_GIL(STATE) \
     PyEval_RestoreThread(STATE)
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // JVM_H
 
