@@ -20,6 +20,7 @@
 #include "pyjava/type.h"
 #include "pyjava/memory.h"
 #include "pyjava/jvm.h"
+#include "pyjava/method_cache.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -129,12 +130,71 @@ static PyObject * _pyjava_convj2p(JNIEnv * env,PyJavaType * type, jobject obj){
     return NULL;
 }
 
+static PyObject * _pyjava_wrapObject(JNIEnv * env, jobject obj,PyJavaType * type){
+
+    if (type) {
+
+        PyJavaObject * r = (PyJavaObject *) pyjava_malloc(sizeof(PyJavaObject));
+        memset(r,0,sizeof(PyJavaObject));
+        r->ob_base.ob_refcnt = 1;
+        Py_IncRef((PyObject*)type);
+        //r->ob_base.ob_type = &(type->pto);
+        r->obj = PYJAVA_ENVCALL(env,NewGlobalRef,obj);
+        PyObject_INIT(((PyObject*)r),((PyTypeObject*)type));
+
+        return (PyObject*) r;
+
+    }
+
+    return NULL;
+
+}
+
+PyObject * pyjava_asWrappedObject(JNIEnv * env, PyObject * obj){
+
+    if (!obj){
+        PyErr_SetString(PyExc_TypeError,"Passed object cannot be returned a a wrapped java object.");
+        return NULL;
+    }
+
+    if (pyjava_isJavaClass(obj->ob_type)){
+        Py_IncRef(obj);
+        return obj;
+    }
+
+    if (PyType_CheckExact(obj)){
+        if (pyjava_isJavaClass((PyTypeObject*)obj)){
+            jclass klass = ((PyJavaType*)obj)->klass;
+            if (klass){
+                jclass klassklass = PYJAVA_ENVCALL(env,GetObjectClass,(jobject)klass);
+                if (klassklass){
+                    PyJavaType * type = (PyJavaType*) pyjava_classAsType(env,klassklass);
+                    if (type){
+                        PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);
+                        Py_DecRef((PyObject*)type);
+                        return _pyjava_wrapObject(env,(jobject)klass,type);
+                    }
+                    PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);
+                }
+            }
+        }
+    }
+
+    PyErr_SetString(PyExc_TypeError,"Passed object cannot be returned a a wrapped java object.");
+    return NULL;
+
+}
+
 PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj){
     if (!obj){
         Py_RETURN_NONE;
     }
-    jclass klass = PYJAVA_ENVCALL(env,GetObjectClass,obj);
 
+    if (pyjava_is_class(env,obj)){
+        return (PyObject*) pyjava_classAsType(env,(jclass)obj);
+    }
+
+    jclass klass = PYJAVA_ENVCALL(env,GetObjectClass,obj);
 
     if (klass){
         // get type and check for converters
@@ -146,18 +206,17 @@ PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj){
             PyObject * ret = _pyjava_convj2p(env,type,obj);
 
             if (!ret){
-                PyJavaObject * r = (PyJavaObject *) pyjava_malloc(sizeof(PyJavaObject));
-                r->ob_base.ob_refcnt = 1;
-                r->ob_base.ob_type = &(type->pto);
-                r->obj = PYJAVA_ENVCALL(env,NewGlobalRef,obj);
-                ret = (PyObject*) r;
-            } else {
-                Py_DecRef((PyObject*)type);
+                ret = _pyjava_wrapObject(env,obj,type);
             }
+
+            Py_DecRef((PyObject*)type);
+            PYJAVA_ENVCALL(env,DeleteLocalRef,klass);
 
             return ret;
 
         }
+
+        PYJAVA_ENVCALL(env,DeleteLocalRef,klass);
 
         PyErr_SetString(PyExc_TypeError,"Failed to convert java object to python (No type object)");
         return NULL;
@@ -265,16 +324,17 @@ int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalu
         if (type){
             for (int i = 0;i<type->converter.convcountp2j;i++){
                 jobject lret = _pyjava_getP2J(&(type->converter),i)(env,type->klass,obj);
-                Py_DecRef((PyObject*)type);
                 if (lret){
                     if (PYJAVA_ENVCALL(env,IsInstanceOf,lret,klass)){
                         ret->l = lret;
+                        Py_DecRef((PyObject*)type);
                         return 1;
                     } else {
                         PYJAVA_ENVCALL(env,DeleteLocalRef,lret);
                     }
                 }
             }
+            Py_DecRef((PyObject*)type);
         }
     }
 

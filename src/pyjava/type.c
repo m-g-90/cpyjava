@@ -1061,7 +1061,16 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                                         // add dict entry
                                         {
                                             PyObject * str = PyUnicode_FromString(fielddef->name);
-                                            PyList_Append(ret->dir,str);
+                                            int found = 0;
+                                            for(Py_ssize_t i = 0;i<PyList_Size(ret->dir);i++){
+                                                if (!PyUnicode_Compare(str,PyList_GET_ITEM(ret->dir,i))){
+                                                    found = 1;
+                                                    break;
+                                                }
+                                            }
+                                            if (!found){
+                                                PyList_Append(ret->dir,str);
+                                            }
                                             Py_DecRef(str);
                                         }
 
@@ -1104,7 +1113,9 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                         ;
                 PyRun_String(def, Py_single_input, PyEval_GetGlobals(), ctx);
                 PyObject * d = PyRun_String("d", Py_eval_input, PyEval_GetGlobals(), ctx);
-                PyDict_SetItemString(ret->pto.tp_dict,"__dir__",d);
+                PyObject * dir = PyUnicode_FromString("__dir__");
+                PyDict_SetItem(ret->pto.tp_dict,dir,d);
+                Py_DecRef(dir);
                 Py_DecRef(ctx);
                 Py_DecRef(d);
             }

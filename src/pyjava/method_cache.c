@@ -57,12 +57,26 @@ jint pyjava_method_cache_identityHash(JNIEnv * env,jobject obj){
 
 }
 
+static jclass _pyjava_is_class_class = NULL;
+int pyjava_is_class(JNIEnv * env,jobject obj){
+    if (!_pyjava_is_class_class){
+        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/lang/Class");
+        _pyjava_is_class_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
+        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
+    }
+    if (!_pyjava_is_class_class){
+        return 0;
+    }
+    return (int) PYJAVA_ENVCALL(env,IsInstanceOf,obj,_pyjava_is_class_class);
+}
+
 void pyjava_method_cache_reset(JNIEnv *env){
     if (_pyjava_identityHash_system) {
         PYJAVA_ENVCALL(env,DeleteGlobalRef,_pyjava_identityHash_system);
     }
     _pyjava_identityHash_system = NULL;
     _pyjava_identityHash_system_identityHash = NULL;
+    _pyjava_is_class_class = NULL;
 }
 
 #ifdef __cplusplus
