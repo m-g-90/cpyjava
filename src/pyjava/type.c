@@ -22,6 +22,7 @@
 #include "pyjava/type_cache.h"
 #include "pyjava/jvm.h"
 #include "pyjava/type_helpers.h"
+#include "pyjava/type_extensions.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -1131,6 +1132,8 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
 
 
         }
+
+        pyjava_init_type_extensions(ret);
 
         if (PyType_Ready(&(ret->pto))){
             //TODO cleanup

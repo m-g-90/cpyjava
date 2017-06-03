@@ -29,6 +29,9 @@ extern "C"{
 jint pyjava_method_cache_identityHash(JNIEnv * env,jobject obj);
 void pyjava_method_cache_reset(JNIEnv * env);
 int pyjava_is_class(JNIEnv * env,jobject obj);
+int pyjava_is_map(JNIEnv * env,jobject obj);
+int pyjava_is_list(JNIEnv * env,jobject obj);
+int pyjava_is_set(JNIEnv * env,jobject obj);
 
 #ifdef __cplusplus
 }
