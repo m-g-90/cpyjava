@@ -16,6 +16,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 //TODO handle possible size differences of long
 static PyObject * pyjava_callHelperInt(JNIEnv * env,jmethodID meth,jobject obj,jclass klass,jvalue * args){
     (void)klass;
@@ -498,3 +502,7 @@ static void pyjava_setStaticFieldChar(JNIEnv* env,jfieldID field,jobject obj,jcl
 (void)obj;
     PYJAVA_ENVCALL(env,SetStaticCharField,klass,field,val->c);
 }
+
+#ifdef __cplusplus
+}
+#endif

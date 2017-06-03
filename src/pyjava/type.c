@@ -21,6 +21,7 @@
 #include "pyjava/memory.h"
 #include "pyjava/type_cache.h"
 #include "pyjava/jvm.h"
+#include "pyjava/type_helpers.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -277,10 +278,6 @@ int pyjava_isJavaClass(PyTypeObject * type){
 jclass _pyjava_getClass(JNIEnv * env, PyTypeObject * type){
     return PYJAVA_ENVCALL(env,NewLocalRef,((PyJavaType*)type)->klass);
 }
-
-
-#include "pyjava/type_helpers.h"
-
 
 PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,PyObject * tuple){
     PyJavaType * type;
