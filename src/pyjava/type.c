@@ -1133,7 +1133,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
 
         }
 
-        pyjava_init_type_extensions(ret);
+        pyjava_init_type_extensions(env,ret);
 
         if (PyType_Ready(&(ret->pto))){
             //TODO cleanup

@@ -7,7 +7,7 @@
 extern "C"{
 #endif
 
-void pyjava_init_type_extensions(PyJavaType * type);
+void pyjava_init_type_extensions(JNIEnv *env, PyJavaType * type);
 
 #ifdef __cplusplus
 }

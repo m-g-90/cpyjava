@@ -71,7 +71,7 @@ int pyjava_is_class(JNIEnv * env,jobject obj){
 }
 
 static jclass _pyjava_is_map_class = NULL;
-int pyjava_is_map(JNIEnv * env,jobject obj){
+jclass pyjava_is_map_class(JNIEnv * env){
     if (!_pyjava_is_map_class){
         jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/util/Map");
         _pyjava_is_map_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
@@ -80,10 +80,10 @@ int pyjava_is_map(JNIEnv * env,jobject obj){
     if (!_pyjava_is_map_class){
         return 0;
     }
-    return (int) PYJAVA_ENVCALL(env,IsInstanceOf,obj,_pyjava_is_map_class);
+    return _pyjava_is_map_class;
 }
 static jclass _pyjava_is_list_class = NULL;
-int pyjava_is_list(JNIEnv * env,jobject obj){
+jclass pyjava_is_list_class(JNIEnv * env){
     if (!_pyjava_is_list_class){
         jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/util/List");
         _pyjava_is_list_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
@@ -92,10 +92,10 @@ int pyjava_is_list(JNIEnv * env,jobject obj){
     if (!_pyjava_is_list_class){
         return 0;
     }
-    return (int) PYJAVA_ENVCALL(env,IsInstanceOf,obj,_pyjava_is_list_class);
+    return _pyjava_is_list_class;
 }
 static jclass _pyjava_is_set_class = NULL;
-int pyjava_is_set(JNIEnv * env,jobject obj){
+jclass pyjava_is_set_class(JNIEnv * env){
     if (!_pyjava_is_set_class){
         jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/util/Set");
         _pyjava_is_set_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
@@ -104,8 +104,21 @@ int pyjava_is_set(JNIEnv * env,jobject obj){
     if (!_pyjava_is_set_class){
         return 0;
     }
-    return (int) PYJAVA_ENVCALL(env,IsInstanceOf,obj,_pyjava_is_set_class);
+    return _pyjava_is_set_class;
 }
+static jclass _pyjava_object_class = NULL;
+jclass pyjava_object_class(JNIEnv * env){
+    if (!_pyjava_object_class){
+        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/lang/Object");
+        _pyjava_object_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
+        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
+    }
+    if (!_pyjava_object_class){
+        return 0;
+    }
+    return _pyjava_object_class;
+}
+
 
 void pyjava_method_cache_reset(JNIEnv *env){
     if (_pyjava_identityHash_system) {

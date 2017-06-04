@@ -405,7 +405,7 @@ int pyjava_exception_java2python(JNIEnv * env){
 }
 
 
-void pyjava_registerConversion(JNIEnv * env, jclass klass, pyjava_converter_j2p_t cj2p, pyjava_converter_p2j_t cp2j){
+PYJAVA_DLLSPEC void pyjava_registerConversion(JNIEnv * env, jclass klass, pyjava_converter_j2p_t cj2p, pyjava_converter_p2j_t cp2j){
 
     PyJavaType * type = (PyJavaType*) pyjava_classAsType(env,klass);
 
@@ -433,7 +433,7 @@ void pyjava_registerConversion(JNIEnv * env, jclass klass, pyjava_converter_j2p_
     }
 
 
-void pyjava_registerNativeConversion(char ntype,pyjava_native_converter_j2p_t fnc){
+PYJAVA_DLLSPEC void pyjava_registerNativeConversion(char ntype,pyjava_native_converter_j2p_t fnc){
     if (!fnc)
         return;
 

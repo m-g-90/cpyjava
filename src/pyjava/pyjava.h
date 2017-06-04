@@ -44,6 +44,21 @@ extern "C"
 #endif
 PYJAVA_DLLSPEC void JNICALL pyjava_registerObject(JNIEnv *,jobject dont_care, jstring name,jobject object);
 
+typedef PyObject * (*pyjava_converter_j2p_t)(JNIEnv * env,jclass klass,jobject object);
+typedef jobject (*pyjava_converter_p2j_t)(JNIEnv * env,jclass klass,PyObject * obj);
+/**
+ * @brief registerConversion allows the register a custom converter
+ * @param env
+ * @param klass
+ * @param cj2p
+ * @param cp2j
+ */
+PYJAVA_DLLSPEC void pyjava_registerConversion(JNIEnv * env,jclass klass,pyjava_converter_j2p_t cj2p,pyjava_converter_p2j_t cp2j);
+
+typedef int (*pyjava_native_converter_j2p_t)(JNIEnv * env,char ntype,PyObject * object,jvalue * value);
+PYJAVA_DLLSPEC void pyjava_registerNativeConversion(char ntype,pyjava_native_converter_j2p_t fnc);
+
+
 
 // blow must be compatible with PyMODINIT_FUNC
 #ifdef __cplusplus
