@@ -25,12 +25,12 @@
 extern "C"{
 #endif
 
-JavaVM * pyjava_getJVM();
-void pyjava_setJVM(JavaVM * jvm);
-int pyjava_initJVM();
+PYJAVA_DLLSPEC JavaVM * pyjava_getJVM();
+PYJAVA_DLLSPEC void pyjava_setJVM(JavaVM * jvm);
+PYJAVA_DLLSPEC int pyjava_initJVM();
 
-void _pyjava_start_java(JNIEnv ** env, int * borrowed);
-void _pyjava_end_java(JNIEnv ** env, int * borrowed);
+PYJAVA_DLLSPEC void _pyjava_start_java(JNIEnv ** env, int * borrowed);
+PYJAVA_DLLSPEC void _pyjava_end_java(JNIEnv ** env, int * borrowed);
 
 
 #define PYJAVA_START_JAVA(ENVVAR) \

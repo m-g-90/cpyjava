@@ -27,7 +27,15 @@
 #define PYJAVA_CFG_TYPE_CACHE_BUCKETS (1024*1024)
 #define PYJAVA_MALLOC_OVERHEAD 100
 
-
+#ifdef _MSC_VER
+    #ifdef PYJAVA_EXPORT
+        #define PYJAVA_DLLSPEC __declspec(dllexport)
+    #else
+        #define PYJAVA_DLLSPEC __declspec(dllimport)
+    #endif
+#else
+    #define PYJAVA_DLLSPEC
+#endif
 
 
 

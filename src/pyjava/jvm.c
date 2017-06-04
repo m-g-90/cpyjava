@@ -37,7 +37,7 @@ extern "C"{
 static JavaVM * pyjava_jvmptr = NULL;
 typedef jint (*createJavaVM_t)(JavaVM **, void **, void *) ;
 
-int pyjava_initJVM() {
+PYJAVA_DLLSPEC int pyjava_initJVM() {
 
     if (!pyjava_jvmptr){
         jint (*createJavaVM)(JavaVM **, void **, void *) = NULL;
@@ -89,7 +89,7 @@ int pyjava_initJVM() {
     return 0;
 }
 
-JavaVM * pyjava_getJVM(){
+PYJAVA_DLLSPEC JavaVM * pyjava_getJVM(){
 
     // try getting existing jvms
     if (!pyjava_jvmptr){
@@ -125,14 +125,14 @@ JavaVM * pyjava_getJVM(){
 
     return pyjava_jvmptr;
 }
-void pyjava_setJVM(JavaVM * jvm){
+PYJAVA_DLLSPEC void pyjava_setJVM(JavaVM * jvm){
     pyjava_jvmptr = jvm;
 }
 
 static thread_local JNIEnv * _pyjava_enter_exit_env = NULL;
 static thread_local int _pyjava_enter_exit_env_borrowed = 0;
 static thread_local unsigned _pyjava_enter_exit_count = 0;
-void pyjava_enter(){
+PYJAVA_DLLSPEC void pyjava_enter(){
     if (_pyjava_enter_exit_count==0){
         JNIEnv * env = NULL;
         int bor = 0;
@@ -143,7 +143,7 @@ void pyjava_enter(){
     _pyjava_enter_exit_count++;
 }
 
-void pyjava_exit(){
+PYJAVA_DLLSPEC void pyjava_exit(){
     _pyjava_enter_exit_count--;
     if (_pyjava_enter_exit_count==0){
         JNIEnv * env = _pyjava_enter_exit_env;
@@ -155,7 +155,7 @@ void pyjava_exit(){
 }
 
 static thread_local JNIEnv * _pyjava_env = NULL;
-void _pyjava_start_java(JNIEnv ** env, int * borrowed){
+PYJAVA_DLLSPEC void _pyjava_start_java(JNIEnv ** env, int * borrowed){
     if (_pyjava_env){
         *borrowed = 1;
         *env = _pyjava_env;
@@ -177,7 +177,7 @@ void _pyjava_start_java(JNIEnv ** env, int * borrowed){
     }
 }
 
-void _pyjava_end_java(JNIEnv ** env, int * borrowed){
+PYJAVA_DLLSPEC void _pyjava_end_java(JNIEnv ** env, int * borrowed){
     *env=NULL;
     if (*borrowed){
         if (*borrowed == 2){

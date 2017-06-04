@@ -21,6 +21,11 @@
 #include "pyjava/conversion.h"
 #include "pyjava/memory.h"
 #include "pyjava/jvm.h"
+#include "pyjava/config.h"
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 static PyObject * pyjava_getType(PyObject *self, PyObject *args)
 {
@@ -201,7 +206,10 @@ PyObject * pyjava_getRegisteredObjects(){
     return registeredObjects;
 }
 
-JNIEXPORT void JNICALL pyjava_registerObject(JNIEnv * env,jobject dont_care,jstring name,jobject object){
+#ifdef __cplusplus
+extern "C"
+#endif
+PYJAVA_DLLSPEC void JNICALL pyjava_registerObject(JNIEnv * env,jobject dont_care,jstring name,jobject object){
     (void)dont_care;
     if (name){
         const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,name, 0);
@@ -251,7 +259,10 @@ static struct PyModuleDef cpyjavamodule = {
     0
 };
 
-PyMODINIT_FUNC PyInit_cpyjava(void) {
+#ifdef __cplusplus
+extern "C"
+#endif
+PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
 	
     PyObject * ret = PyModule_Create(&cpyjavamodule);
 

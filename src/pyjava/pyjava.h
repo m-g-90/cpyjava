@@ -31,18 +31,25 @@ typedef struct PyJavaObject {
 } PyJavaObject;
 
 
-void pyjava_enter();
-void pyjava_exit();
+PYJAVA_DLLSPEC void pyjava_enter();
+PYJAVA_DLLSPEC void pyjava_exit();
 
 /*
  * Class:     -
  * Method:    registerObject
  * Signature: (Ljava/lang/String;Ljava/lang/Object;)V
  */
-JNIEXPORT void JNICALL pyjava_registerObject(JNIEnv *,jobject dont_care, jstring name,jobject object);
+#ifdef __cplusplus
+extern "C"
+#endif
+PYJAVA_DLLSPEC void JNICALL pyjava_registerObject(JNIEnv *,jobject dont_care, jstring name,jobject object);
 
 
-PyMODINIT_FUNC PyInit_cpyjava(void);
+// blow must be compatible with PyMODINIT_FUNC
+#ifdef __cplusplus
+extern "C"
+#endif
+PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void);
 
 #ifdef __cplusplus
 }

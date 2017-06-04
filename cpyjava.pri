@@ -1,4 +1,5 @@
 
+DEFINES += PYJAVA_EXPORT
 
 
 INCLUDEPATH += $$PWD/src/
