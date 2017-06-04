@@ -305,6 +305,9 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
                     "            #print(self.getName(item))\n"
                     "            #print(repr(ex))\n"
                     "            pass\n"
+                    "        if item == 'type' or item == 'class':\n"
+                    "            import cpyjava\n"
+                    "            return cpyjava.getType(self.getName())\n"
                     "        return cpyjava.JavaPackage(self,item)\n"
                     "\n"
                     "    def __setattr__(self, item,value):\n"
@@ -316,7 +319,8 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
                     "\n"
                     "    def __call__(self,*args):\n"
                     "        import cpyjava\n"
-                    "        return cpyjava.getType(self.getName())(*args)"
+                    "        return cpyjava.getType(self.getName())(*args)\n"
+                    "\n"
                     ;
 
 
