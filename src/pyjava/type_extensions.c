@@ -73,14 +73,25 @@ static PyObject * java_util_Map_Get(PyObject *o,PyObject * key){
 }
 static int java_util_Map_Set(PyObject *o,PyObject * key,PyObject * val){
 
-    PyObject * ret = member_call2((PyObject *)o,"put",key,val);
-    if (ret){
-        Py_DecRef(ret);
+    if (val) {
+        PyObject * ret = member_call2((PyObject *)o,"put",key,val);
+        if (ret){
+            Py_DecRef(ret);
+        }
+        if (PyErr_Occurred()){
+            return -1;
+        }
+        return 0;
+    } else {
+        PyObject * ret = member_call1((PyObject *)o,"remove",key);
+        if (ret){
+            Py_DecRef(ret);
+        }
+        if (PyErr_Occurred()){
+            return -1;
+        }
+        return 0;
     }
-    if (PyErr_Occurred()){
-        return -1;
-    }
-    return 0;
 }
 
 static PyMappingMethods java_util_Map = {
