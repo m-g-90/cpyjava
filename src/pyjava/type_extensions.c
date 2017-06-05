@@ -94,16 +94,57 @@ static int java_util_Map_Set(PyObject *o,PyObject * key,PyObject * val){
     }
 }
 
+static PyObject * java_lang_Iterable_iterator(PyObject *o){
+
+    return member_call0(o,"iterator");
+
+}
+
+static PyObject * java_lang_Iterator_next(PyObject *o){
+
+    PyObject * ret = member_call0(o,"next");
+
+    if (PyErr_Occurred()){ //TODO handle the case where actually an error occured
+        PyErr_Clear();
+        return NULL;
+    }
+
+    return ret;
+
+}
+
+static PyObject * java_lang_Iterator_tp_iter(PyObject *o){
+
+    Py_IncRef(o);
+
+    return o;
+
+}
+
 static PyMappingMethods java_util_Map = {
     (lenfunc)&java_util_Map_Length,
-    java_util_Map_Get,
-    java_util_Map_Set
+    &java_util_Map_Get,
+    &java_util_Map_Set
 };
 
 void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
+
+    // some general interfaces. might be overriden later if special behaviour for more complex interfaces is needed
+    if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_iterable_class(env))){
+        type->pto.tp_iter = &java_lang_Iterable_iterator;
+    }
+    if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_iterator_class(env))){
+        type->pto.tp_iter = &java_lang_Iterator_tp_iter;
+        type->pto.tp_iternext = &java_lang_Iterator_next;
+    }
+
+
     if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_is_map_class(env))){
         type->pto.tp_as_mapping = &java_util_Map;
+    } else if (0) { // check if this is a list
+
     }
+
 }
 
 #ifdef __cplusplus

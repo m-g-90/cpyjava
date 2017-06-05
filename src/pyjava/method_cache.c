@@ -118,6 +118,31 @@ jclass pyjava_object_class(JNIEnv * env){
     }
     return _pyjava_object_class;
 }
+static jclass _pyjava_iterable_class = NULL;
+jclass pyjava_iterable_class(JNIEnv * env){
+    if (!_pyjava_iterable_class){
+        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/lang/Iterable");
+        _pyjava_iterable_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
+        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
+    }
+    if (!_pyjava_iterable_class){
+        return 0;
+    }
+    return _pyjava_iterable_class;
+}
+static jclass _pyjava_iterator_class = NULL;
+jclass pyjava_iterator_class(JNIEnv * env){
+    if (!_pyjava_iterator_class){
+        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/util/Iterator");
+        _pyjava_iterator_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
+        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
+    }
+    if (!_pyjava_iterator_class){
+        return 0;
+    }
+    return _pyjava_iterator_class;
+}
+
 
 
 void pyjava_method_cache_reset(JNIEnv *env){

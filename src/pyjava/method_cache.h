@@ -33,6 +33,8 @@ jclass pyjava_is_map_class(JNIEnv * env);
 jclass pyjava_is_list_class(JNIEnv * env);
 jclass pyjava_is_set_class(JNIEnv * env);
 jclass pyjava_object_class(JNIEnv * env);
+jclass pyjava_iterable_class(JNIEnv * env);
+jclass pyjava_iterator_class(JNIEnv * env);
 
 #ifdef __cplusplus
 }
