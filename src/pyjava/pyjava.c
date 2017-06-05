@@ -266,6 +266,18 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
 	
     PyObject * ret = PyModule_Create(&cpyjavamodule);
 
+    PyObject * globals = PyEval_GetGlobals();
+    if (globals){
+        Py_IncRef(globals);
+    } else {
+        PyObject * module = PyImport_ImportModule("builtins");
+        if (module){
+            globals = PyModule_GetDict(module);
+            globals = PyDict_Copy(globals);
+            Py_DecRef(module);
+        }
+    }
+
     PyObject * ctx = PyDict_New();
     {
         {
@@ -324,7 +336,7 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
                     ;
 
 
-            PyObject* jpclass = PyRun_String(classdef, Py_single_input, PyEval_GetGlobals(), ctx);
+            PyObject* jpclass = PyRun_String(classdef, Py_single_input, globals, ctx);
             if (jpclass){
                 Py_DecRef(jpclass);
             }
@@ -345,19 +357,19 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
                     "        cpyjava._with_java_exit()\n"
                     "\n"
                     ;
-            PyObject* jpclass = PyRun_String(classdef, Py_single_input, PyEval_GetGlobals(), ctx);
+            PyObject* jpclass = PyRun_String(classdef, Py_single_input, globals, ctx);
             if (jpclass){
                 Py_DecRef(jpclass);
             }
         }
         if (!PyErr_Occurred()){
-            PyObject * packages = PyRun_String("JavaPackage", Py_eval_input, PyEval_GetGlobals(), ctx);
+            PyObject * packages = PyRun_String("JavaPackage", Py_eval_input, globals, ctx);
             if (packages){
                 PyObject_SetAttrString(ret,"JavaPackage",packages);
             }
         }
         if (!PyErr_Occurred()){
-            PyObject * packages = PyRun_String("env()", Py_eval_input, PyEval_GetGlobals(), ctx);
+            PyObject * packages = PyRun_String("env()", Py_eval_input, globals, ctx);
             if (packages){
                 PyObject_SetAttrString(ret,"env",packages);
             }
@@ -366,13 +378,16 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
             PyObject_SetAttrString(ret,"registeredObjects",pyjava_getRegisteredObjects());
         }
         if (!PyErr_Occurred()){
-            PyObject * packages = PyRun_String("JavaPackage(None,\"\")", Py_eval_input, PyEval_GetGlobals(), ctx);
+            PyObject * packages = PyRun_String("JavaPackage(None,\"\")", Py_eval_input, globals, ctx);
             if (packages){
                 PyObject_SetAttrString(ret,"packages",packages);
             }
         }
     }
 	
+    Py_DecRef(globals);
+    Py_DecRef(ctx);
+
     return ret;
 
 }
