@@ -100,6 +100,20 @@ static PyObject * java_lang_Iterable_iterator(PyObject *o){
 
 }
 
+static PyObject * java_util_Map_tp_iter(PyObject *o){
+
+    PyObject * ret = member_call0(o,"keySet");
+
+    if (ret){
+
+        ret = java_lang_Iterable_iterator(ret);
+
+    }
+
+    return ret;
+
+}
+
 static PyObject * java_lang_Iterator_next(PyObject *o){
 
     PyObject * ret = member_call0(o,"next");
@@ -141,6 +155,7 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
 
     if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_is_map_class(env))){
         type->pto.tp_as_mapping = &java_util_Map;
+        type->pto.tp_iter = &java_util_Map_tp_iter;
     } else if (0) { // check if this is a list
 
     }
