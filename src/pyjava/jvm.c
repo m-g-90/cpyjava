@@ -17,6 +17,7 @@
  */
 
 #include "pyjava/jvm.h"
+#include "pyjava/conversion.h"
 
 #ifndef __cplusplus
 #ifdef _MSC_VER
@@ -80,7 +81,7 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
 
             } else {
                 PYJAVA_ENVCALL(vm,DetachCurrentThread);
-                pyjava_jvmptr = vm;
+                pyjava_setJVM(vm);
                 return 1;
             }
         }
@@ -113,7 +114,7 @@ PYJAVA_DLLSPEC JavaVM * pyjava_getJVM(){
             jsize vmcount;
             if (JNI_OK == getCreatedJavaVMs(&vm,1,&vmcount)){
                 if (vmcount>0)
-                    pyjava_jvmptr = vm;
+                    pyjava_setJVM(vm);
             }
         }
 
@@ -127,6 +128,11 @@ PYJAVA_DLLSPEC JavaVM * pyjava_getJVM(){
 }
 PYJAVA_DLLSPEC void pyjava_setJVM(JavaVM * jvm){
     pyjava_jvmptr = jvm;
+    {
+        PYJAVA_START_JAVA(env);
+        pyjava_conversion_forceInit(env);
+        PYJAVA_END_JAVA(env);
+    }
 }
 
 static thread_local JNIEnv * _pyjava_enter_exit_env = NULL;

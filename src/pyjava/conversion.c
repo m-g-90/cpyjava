@@ -385,11 +385,33 @@ static jobject str_p2j(JNIEnv * env,jclass klass,PyObject * obj){
     return NULL;
 }
 
+
 void pyjava_conversion_initType(JNIEnv * env,PyJavaType * type){
 
-    if (!strcmp(type->pto.tp_name,"java.lang.String")){
+    if (!strcmp(type->pto.tp_name,"class java.lang.String")){
         pyjava_registerConversion(env,type->klass,str_j2p,str_p2j);
     }
+
+}
+
+static void simple_forceinit(JNIEnv * env, const char * name){
+    jclass klass = PYJAVA_ENVCALL(env,FindClass,name);
+    PYJAVA_IGNORE_EXCEPTION(env);
+    if (klass){
+        PyObject * obj = (PyObject*) pyjava_classAsType(env,klass);
+        if (PyErr_Occurred()){
+            PyErr_Clear();
+        }
+        if (obj){
+            Py_DecRef(obj);
+        }
+        PYJAVA_ENVCALL(env,DeleteLocalRef,klass);
+    }
+}
+
+void pyjava_conversion_forceInit(JNIEnv * env){
+
+    simple_forceinit(env,"java/lang/String");
 
 }
 

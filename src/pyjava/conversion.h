@@ -35,6 +35,7 @@ PyObject * pyjava_asWrappedObject(JNIEnv * env, PyObject * obj);
 int pyjava_exception_java2python(JNIEnv * env);
 
 PyObject * pyjava_compile(const char * code,PyObject * locals,int eval);
+void pyjava_conversion_forceInit(JNIEnv * env);
 
 typedef struct PyJavaConverter {
     pyjava_converter_j2p_t convj2p0;
