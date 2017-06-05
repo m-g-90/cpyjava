@@ -411,7 +411,7 @@ PYJAVA_DLLSPEC void pyjava_registerConversion(JNIEnv * env, jclass klass, pyjava
 
     if (type){
         _pyjava_addJ2P(&(type->converter),cj2p);
-        _pyjava_addP2J(&(type->converter),cp2j);
+        _pyjava_addP2J_rec(type,cp2j);
     }
 
 }
@@ -440,6 +440,42 @@ PYJAVA_DLLSPEC void pyjava_registerNativeConversion(char ntype,pyjava_native_con
     PYJAVA_RNC_ADD(L);
 
 }
+
+PyObject * pyjava_compile(const char * code, PyObject * locals, int eval){
+    PyObject * globals = PyEval_GetGlobals();
+    if (globals){
+        Py_IncRef(globals);
+    } else {
+        PyObject * module = PyImport_ImportModule("builtins");
+        if (module){
+            globals = PyModule_GetDict(module);
+            globals = PyDict_Copy(globals);
+            Py_DecRef(module);
+        }
+    }
+    if (!globals){
+        if (PyErr_Occurred()){
+            PyErr_Clear();
+        }
+        return NULL;
+    }
+    int owned_locals = 0;
+    if (!locals){
+        locals = PyDict_New();
+        owned_locals = 1;
+    }
+    PyObject * ret = PyRun_String(code,eval?Py_eval_input:Py_file_input,globals,locals);
+    if (owned_locals){
+        Py_DecRef(locals);
+    }
+    Py_DecRef(globals);
+    if (PyErr_Occurred()){
+        PyErr_Clear();
+    }
+    return ret;
+}
+
+
 
 
 #ifdef __cplusplus
