@@ -510,8 +510,8 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
             if (jname){
                 const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
                 int off = 0;
-                if (tmp[0]=='c' && tmp[1]=='l' && tmp[2]=='a' && tmp[3]=='s' && tmp[4]=='s' && tmp[5]==' ')
-                    off = 6;
+                //if (tmp[0]=='c' && tmp[1]=='l' && tmp[2]=='a' && tmp[3]=='s' && tmp[4]=='s' && tmp[5]==' ')
+                //    off = 6;
                 pyjava_free(name);
                 name = strcpy((char*)pyjava_malloc(sizeof(char)*strlen(tmp+off)),tmp+off);
                 PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
@@ -1108,6 +1108,18 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
         }
 
         {
+            PyObject * globals = PyEval_GetGlobals();
+            if (globals){
+                Py_IncRef(globals);
+            } else {
+                PyObject * module = PyImport_ImportModule("builtins");
+                if (module){
+                    globals = PyModule_GetDict(module);
+                    globals = PyDict_Copy(globals);
+                    Py_DecRef(module);
+                }
+            }
+
             ret->pto.tp_dict = PyDict_New();
             {
                 for (Py_ssize_t i = 0;i<PyTuple_Size(ret->dir);i++){
@@ -1121,13 +1133,17 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                         "    import cpyjava\n"
                         "    return cpyjava.symbols(obj)\n"
                         ;
-                PyRun_String(def, Py_single_input, PyEval_GetGlobals(), ctx);
-                PyObject * d = PyRun_String("d", Py_eval_input, PyEval_GetGlobals(), ctx);
+                PyRun_String(def, Py_single_input, globals, ctx);
+                PyObject * d = PyRun_String("d", Py_eval_input, globals, ctx);
                 PyObject * dir = PyUnicode_FromString("__dir__");
                 PyDict_SetItem(ret->pto.tp_dict,dir,d);
                 Py_DecRef(dir);
                 Py_DecRef(ctx);
                 Py_DecRef(d);
+            }
+
+            if (globals){
+                Py_DecRef(globals);
             }
 
 
