@@ -412,6 +412,15 @@ static void simple_forceinit(JNIEnv * env, const char * name){
 void pyjava_conversion_forceInit(JNIEnv * env){
 
     simple_forceinit(env,"java/lang/String");
+    simple_forceinit(env,"java/lang/Integer");
+    simple_forceinit(env,"java/lang/Long");
+    simple_forceinit(env,"java/lang/Char");
+    simple_forceinit(env,"java/lang/Short");
+    simple_forceinit(env,"java/lang/Byte");
+    simple_forceinit(env,"java/lang/Boolean");
+    simple_forceinit(env,"java/lang/Float");
+    simple_forceinit(env,"java/lang/Double");
+    simple_forceinit(env,"java/math/BigInteger");
 
 }
 
