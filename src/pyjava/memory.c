@@ -90,6 +90,7 @@ void * pyjava_malloc(size_t size){
     if ((ret->size == X) && (block##X##_freecount<(PYJAVA_MALLOC_OVERHEAD))){ \
         ret->next = block##X; \
         block##X = ret; \
+        block##X##_usecount--;\
         block##X##_freecount++;\
     } else \
 
