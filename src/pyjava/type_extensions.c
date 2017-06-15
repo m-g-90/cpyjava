@@ -10,7 +10,7 @@ extern "C"{
 
 static Py_ssize_t java_util_Map_Length(PyJavaObject *o){
     PYJAVA_START_JAVA(env);
-    jclass klass = pyjava_is_map_class(env);
+    jclass klass = pyjava_map_class(env);
     if (klass){
         jmethodID mid = PYJAVA_ENVCALL(env,GetMethodID,klass,"size","()I");
         if (mid){
@@ -135,10 +135,27 @@ static PyObject * java_lang_Iterator_tp_iter(PyObject *o){
 
 }
 
+static PyObject * java_util_List_Length(PyObject * o){
+    return member_call0((PyObject *)o,"size");
+}
+
 static PyMappingMethods java_util_Map = {
     (lenfunc)&java_util_Map_Length,
     &java_util_Map_Get,
     &java_util_Map_Set
+};
+
+static PySequenceMethods java_util_List = {
+    &java_util_List_Length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    0,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    0,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
 };
 
 void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
@@ -153,10 +170,10 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
     }
 
 
-    if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_is_map_class(env))){
+    if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_map_class(env))){
         type->pto.tp_as_mapping = &java_util_Map;
         type->pto.tp_iter = &java_util_Map_tp_iter;
-    } else if (0) { // check if this is a list
+    } else if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_list_class(env))) { // check if this is a list
 
     }
 

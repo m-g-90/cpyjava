@@ -70,79 +70,29 @@ int pyjava_is_class(JNIEnv * env,jobject obj){
     return (int) PYJAVA_ENVCALL(env,IsInstanceOf,obj,_pyjava_is_class_class);
 }
 
-static jclass _pyjava_is_map_class = NULL;
-jclass pyjava_is_map_class(JNIEnv * env){
-    if (!_pyjava_is_map_class){
-        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/util/Map");
-        _pyjava_is_map_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
-        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
-    }
-    if (!_pyjava_is_map_class){
-        return 0;
-    }
-    return _pyjava_is_map_class;
-}
-static jclass _pyjava_is_list_class = NULL;
-jclass pyjava_is_list_class(JNIEnv * env){
-    if (!_pyjava_is_list_class){
-        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/util/List");
-        _pyjava_is_list_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
-        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
-    }
-    if (!_pyjava_is_list_class){
-        return 0;
-    }
-    return _pyjava_is_list_class;
-}
-static jclass _pyjava_is_set_class = NULL;
-jclass pyjava_is_set_class(JNIEnv * env){
-    if (!_pyjava_is_set_class){
-        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/util/Set");
-        _pyjava_is_set_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
-        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
-    }
-    if (!_pyjava_is_set_class){
-        return 0;
-    }
-    return _pyjava_is_set_class;
-}
-static jclass _pyjava_object_class = NULL;
-jclass pyjava_object_class(JNIEnv * env){
-    if (!_pyjava_object_class){
-        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/lang/Object");
-        _pyjava_object_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
-        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
-    }
-    if (!_pyjava_object_class){
-        return 0;
-    }
-    return _pyjava_object_class;
-}
-static jclass _pyjava_iterable_class = NULL;
-jclass pyjava_iterable_class(JNIEnv * env){
-    if (!_pyjava_iterable_class){
-        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/lang/Iterable");
-        _pyjava_iterable_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
-        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
-    }
-    if (!_pyjava_iterable_class){
-        return 0;
-    }
-    return _pyjava_iterable_class;
-}
-static jclass _pyjava_iterator_class = NULL;
-jclass pyjava_iterator_class(JNIEnv * env){
-    if (!_pyjava_iterator_class){
-        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/util/Iterator");
-        _pyjava_iterator_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
-        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
-    }
-    if (!_pyjava_iterator_class){
-        return 0;
-    }
-    return _pyjava_iterator_class;
-}
 
+#define PYJAVA_METHOD_CACHE_CLASS(CLASSNAME,SHORTNAME) \
+    static jclass _pyjava_##SHORTNAME##_class = NULL; \
+    jclass pyjava_##SHORTNAME##_class(JNIEnv * env){ \
+        if (!_pyjava_##SHORTNAME##_class){ \
+            jclass tmp = PYJAVA_ENVCALL(env,FindClass,CLASSNAME); \
+            _pyjava_##SHORTNAME##_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp); \
+            PYJAVA_ENVCALL(env,DeleteLocalRef,tmp); \
+        } \
+        if (!_pyjava_##SHORTNAME##_class){ \
+            /*TODO: log error */ \
+            return 0; \
+        } \
+        return _pyjava_##SHORTNAME##_class; \
+    }
+
+PYJAVA_METHOD_CACHE_CLASS("java/util/Iterator",iterator)
+PYJAVA_METHOD_CACHE_CLASS("java/lang/Iterable",iterable)
+PYJAVA_METHOD_CACHE_CLASS("java/lang/Object",object)
+PYJAVA_METHOD_CACHE_CLASS("java/util/Set",set)
+PYJAVA_METHOD_CACHE_CLASS("java/util/List",list)
+PYJAVA_METHOD_CACHE_CLASS("java/util/Map",map)
+PYJAVA_METHOD_CACHE_CLASS("java/lang/Class",class)
 
 
 void pyjava_method_cache_reset(JNIEnv *env){
