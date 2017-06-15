@@ -135,8 +135,43 @@ static PyObject * java_lang_Iterator_tp_iter(PyObject *o){
 
 }
 
-static PyObject * java_util_List_Length(PyObject * o){
-    return member_call0((PyObject *)o,"size");
+static Py_ssize_t java_util_List_Length(PyObject * o){
+    PyObject * ret = member_call0((PyObject *)o,"size");
+    if (ret){
+        if (PyLong_CheckExact(ret)){
+            Py_ssize_t l = PyLong_AsSsize_t(ret);
+            Py_DecRef(ret);
+            return l;
+        } else {
+            Py_DecRef(ret);
+        }
+    }
+    return -1;
+}
+
+static PyObject * java_util_List_Concat(PyObject * o,PyObject * val){
+    return member_call1((PyObject *)o,"add",val);
+}
+
+static PyObject * java_util_List_Item(PyObject *o,Py_ssize_t index){
+    PyObject * val = PyLong_FromSsize_t(index);
+    PyObject * ret = member_call1((PyObject *)o,"get",val);
+    Py_DecRef(val);
+    return ret;
+}
+
+static int java_util_List_Ass_Item(PyObject *o,Py_ssize_t index,PyObject * val){
+    PyObject * i = PyLong_FromSsize_t(index);
+    PyObject * ret = NULL;
+    if (val){
+        ret = member_call2((PyObject *)o,"set",i,val);
+    } else {
+        ret = member_call1((PyObject *)o,"remove",i);
+    }
+    Py_DecRef(i);
+    if (ret)
+        Py_DecRef(ret);
+    return PyErr_Occurred()?-1:0;
 }
 
 static PyMappingMethods java_util_Map = {
@@ -147,11 +182,11 @@ static PyMappingMethods java_util_Map = {
 
 static PySequenceMethods java_util_List = {
     &java_util_List_Length,// lenfunc sq_length,
-    0,// binaryfunc sq_concat,
+    &java_util_List_Concat,// binaryfunc sq_concat,
     0,// ssizeargfunc sq_repeat,
-    0,// ssizeargfunc sq_item,
+    &java_util_List_Item,// ssizeargfunc sq_item,
     0,// void *was_sq_slice,
-    0,// ssizeobjargproc sq_ass_item,
+    &java_util_List_Ass_Item,// ssizeobjargproc sq_ass_item,
     0,// void *was_sq_ass_slice,
     0,// objobjproc sq_contains,
     0,// binaryfunc sq_inplace_concat,
@@ -174,7 +209,7 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
         type->pto.tp_as_mapping = &java_util_Map;
         type->pto.tp_iter = &java_util_Map_tp_iter;
     } else if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_list_class(env))) { // check if this is a list
-
+        type->pto.tp_as_sequence = &java_util_List;
     }
 
 }
