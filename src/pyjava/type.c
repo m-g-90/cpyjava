@@ -126,15 +126,11 @@ static PyObject* pyjava_type_getattro( PyObject* self, PyObject* pyname){
     PyObject * ret = NULL;
     if (method){
         if (!_pyjava_method_helper){
-            PyObject * ctx = PyDict_New();
-            {
-                PyObject* del = PyRun_String("import cpyjava", Py_single_input, PyEval_GetGlobals(), ctx);
-                if (del){
-                    Py_DecRef(del);
-                }
-            }
-            if (!PyErr_Occurred()){
-                _pyjava_method_helper = PyRun_String("lambda s,n: lambda *args,**kvargs: cpyjava.callMethod(s,n,args)", Py_eval_input, PyEval_GetGlobals(), ctx);
+            PyObject * globals = PyDict_New();
+            PyDict_SetItemString(globals, "__builtins__", PyEval_GetBuiltins());
+            if (globals){
+                _pyjava_method_helper = PyRun_String("(lambda c: lambda s,n: lambda *args,**kvargs: c.callMethod(s,n,args))(__builtins__['__import__']('cpyjava'))", Py_eval_input, globals, globals);
+                Py_DecRef(globals);
             }
         }
         if (_pyjava_method_helper){
@@ -1108,17 +1104,8 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
         }
 
         {
-            PyObject * globals = PyEval_GetGlobals();
-            if (globals){
-                Py_IncRef(globals);
-            } else {
-                PyObject * module = PyImport_ImportModule("builtins");
-                if (module){
-                    globals = PyModule_GetDict(module);
-                    globals = PyDict_Copy(globals);
-                    Py_DecRef(module);
-                }
-            }
+            PyObject * globals = PyDict_New();
+            PyDict_SetItemString(globals, "__builtins__", PyEval_GetBuiltins());
 
             ret->pto.tp_dict = PyDict_New();
             {
@@ -1127,18 +1114,14 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                 }
             }
             {
-                PyObject * ctx = PyDict_New();
                 const char * def =
-                        "def d(obj):\n"
-                        "    import cpyjava\n"
-                        "    return cpyjava.symbols(obj)\n"
+                        "tmp = (lambda i: lambda o: i('cpyjava').symbols(o))(__builtins__['__import__'])\n"
                         ;
-                PyRun_String(def, Py_single_input, globals, ctx);
-                PyObject * d = PyRun_String("d", Py_eval_input, globals, ctx);
+                PyRun_String(def, Py_single_input, globals, globals);
+                PyObject * d = PyRun_String("tmp", Py_eval_input, globals, globals);
                 PyObject * dir = PyUnicode_FromString("__dir__");
                 PyDict_SetItem(ret->pto.tp_dict,dir,d);
                 Py_DecRef(dir);
-                Py_DecRef(ctx);
                 Py_DecRef(d);
             }
 
