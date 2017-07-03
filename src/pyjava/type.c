@@ -597,7 +597,11 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                         jclass super = PYJAVA_ENVCALL(env,CallObjectMethod,klass,getsuper);
                         PYJAVA_IGNORE_EXCEPTION(env);
                         if (super){
-                            PyList_Append(lbases,(PyObject*)pyjava_classAsType(env,super));
+                            PyObject * base = (PyObject*)pyjava_classAsType(env,super);
+                            if (base){
+                                PyList_Append(lbases,base);
+                                Py_DecRef(base);
+                            }
                             PYJAVA_ENVCALL(env,DeleteLocalRef,super);
                         }
                     }
@@ -612,8 +616,13 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                                 PYJAVA_IGNORE_EXCEPTION(env);
                                 jclass ifc = PYJAVA_ENVCALL(env,GetObjectArrayElement,ifs,i);
                                 PYJAVA_IGNORE_EXCEPTION(env);
-                                PyList_Append(lbases,(PyObject*)pyjava_classAsType(env,ifc));
-                                PYJAVA_ENVCALL(env,DeleteLocalRef,ifc);
+                                if (ifc){
+                                    PyObject * base = (PyObject*)pyjava_classAsType(env,ifc);
+                                    if (base){
+                                        PyList_Append(lbases,base);
+                                        Py_DecRef(base);
+                                    }
+                                }
                             }
                             PYJAVA_ENVCALL(env,DeleteLocalRef,ifs);
                         }
@@ -1067,17 +1076,19 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                                         // add dict entry
                                         {
                                             PyObject * str = PyUnicode_FromString(fielddef->name);
-                                            int found = 0;
-                                            for(Py_ssize_t i = 0;i<PyList_Size(ret->dir);i++){
-                                                if (!PyUnicode_Compare(str,PyList_GET_ITEM(ret->dir,i))){
-                                                    found = 1;
-                                                    break;
+                                            if (str){
+                                                int found = 0;
+                                                for(Py_ssize_t i = 0;i<PyList_Size(ret->dir);i++){
+                                                    if (!PyUnicode_Compare(str,PyList_GET_ITEM(ret->dir,i))){
+                                                        found = 1;
+                                                        break;
+                                                    }
                                                 }
+                                                if (!found){
+                                                    PyList_Append(ret->dir,str);
+                                                }
+                                                Py_DecRef(str);
                                             }
-                                            if (!found){
-                                                PyList_Append(ret->dir,str);
-                                            }
-                                            Py_DecRef(str);
                                         }
 
                                         PYJAVA_ENVCALL(env,DeleteLocalRef,field);
