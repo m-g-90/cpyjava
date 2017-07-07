@@ -31,3 +31,9 @@ Examples:
     map.put("key","value") # NOTE: due to currently limited conversion support, only strings can be used
     repr(map)
     print(map["key"])
+
+  
+  Compiling the Project:
+    1. Open the cpyjava.pro project in qtcreator
+    2. Adapt the java and python paths/versions 
+   
