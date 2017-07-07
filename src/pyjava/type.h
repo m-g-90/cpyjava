@@ -84,6 +84,7 @@ typedef struct PyJavaType {
 int pyjava_isJavaClass(PyTypeObject * type);
 
 PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,PyObject * tuple);
+int pyjava_hasFunction(JNIEnv * env, PyObject * _obj,const char * name);
 PyObject * pyjava_getField(JNIEnv * env, PyObject * _obj,const char * name);
 void pyjava_setField(JNIEnv * env, PyObject * _obj,const char * name,PyObject * val);
 char pyjava_getNType(JNIEnv * env,jclass klass);

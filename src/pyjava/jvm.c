@@ -38,6 +38,19 @@ extern "C"{
 static JavaVM * pyjava_jvmptr = NULL;
 typedef jint (*createJavaVM_t)(JavaVM **, void **, void *) ;
 
+
+static int pyjava_jnicheck =
+        #if defined(QT_DEBUG) || defined(DEBUG)
+            1
+        #else
+            0
+        #endif
+        ;
+
+PYJAVA_DLLSPEC void pyjava_checkJNI(int enable){
+    pyjava_jnicheck = enable;
+}
+
 PYJAVA_DLLSPEC int pyjava_initJVM() {
 
     if (!pyjava_jvmptr){
@@ -69,11 +82,17 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
             initArgs.version = JNI_VERSION_1_8;
             initArgs.ignoreUnrecognized = JNI_TRUE;
             JavaVMOption options[10];
-            {
-                options[0].extraInfo = NULL;
-                options[0].optionString = "-Xcheck:jni";
+            int optioncount = 0;
+            if (pyjava_jnicheck){
+                options[optioncount].extraInfo = NULL;
+                options[optioncount].optionString = "-Xcheck:jni";
+                options[optioncount+1].extraInfo = NULL;
+                options[optioncount+1].optionString = "-Xcheck:jni:pedantic";
+                options[optioncount+2].extraInfo = NULL;
+                options[optioncount+2].optionString = "-Xcheck:jni:trace";
+                optioncount += 3;
             }
-            int optioncount = 1;
+
             initArgs.options = options;
             initArgs.nOptions = optioncount;
             jint err = (*createJavaVM)(&vm, (void**)&env, &initArgs);
@@ -176,6 +195,7 @@ PYJAVA_DLLSPEC void _pyjava_start_java(JNIEnv ** env, int * borrowed){
                 _pyjava_env = *env;
                 *borrowed = 0;
             }
+            PYJAVA_ENVCALL(*env,EnsureLocalCapacity,100);
         } else {
             *borrowed = 1;
             *env = NULL;

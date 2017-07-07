@@ -135,6 +135,8 @@ static PyObject* pyjava_type_getattro( PyObject* self, PyObject* pyname){
         }
         if (_pyjava_method_helper){
             PyObject * args = PyTuple_New(2);
+            Py_IncRef(self);
+            Py_IncRef(pyname);
             PyTuple_SetItem(args,0,self);
             PyTuple_SetItem(args,1,pyname);
             ret = PyObject_Call(_pyjava_method_helper,args,NULL);
@@ -346,6 +348,11 @@ PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,P
 
         PyObject * ret = method->callHelper(env,method->methodid,obj?obj->obj:NULL,type->klass,jargs);
 
+        for (Py_ssize_t argi = 0;argi<argcount;argi++){
+            if (method->parameters[argi].ntype == 'L' || method->parameters[argi].ntype == '['){
+                PYJAVA_ENVCALL(env,DeleteLocalRef,jargs[argi].l);
+            }
+        }
         pyjava_free(jargs);
 
         return ret;
@@ -356,6 +363,54 @@ PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,P
     return NULL;
 
 }
+
+int pyjava_hasFunction(JNIEnv * env, PyObject * _obj,const char * name){
+    PyJavaType * type;
+    PyJavaObject * obj;
+    if (PyType_Check(_obj)){
+        if (pyjava_isJavaClass((PyTypeObject*)_obj)){
+            type=(PyJavaType*)_obj;
+            obj = NULL;
+        } else {
+            PyErr_BadArgument();
+            return 0;
+        }
+    } else {
+        if (pyjava_isJavaClass(_obj->ob_type)){
+            type=(PyJavaType*)_obj->ob_type;
+            obj=(PyJavaObject*)_obj;
+        } else {
+            PyErr_BadArgument();
+            return 0;
+        }
+    }
+
+    if (!name){
+        PyErr_BadArgument();
+        return 0;
+    }
+
+    const int namehash = pyjava_cstring_hash(name);
+
+    PyJavaMethod * _method = type->methods[(unsigned)namehash%(PYJAVA_SYMBOL_BUCKET_COUNT)];
+    while (_method){
+        PyJavaMethod * method = _method;
+        _method = _method->next;
+        if (strcmp(method->name,name)){
+            continue;
+        }
+        if (!method->modifiers.isStatic && !obj){
+            continue;
+        }
+
+        return 1;
+
+    }
+
+    return 0;
+
+}
+
 
 PyObject * pyjava_getField(JNIEnv * env, PyObject * _obj,const char * name){
     PyJavaType * type;
@@ -486,6 +541,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
     PyJavaType * const ret = (PyJavaType*) pyjava_malloc(sizeof(PyJavaType));
 
     if (!ret){
+        PYJAVA_SOFTASSERT(ret);
         return NULL;
     }
 
@@ -496,20 +552,26 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
     jmethodID class_getName = 0;
     {
         jclass klassklass = PYJAVA_ENVCALL(env,GetObjectClass,klass);
+        PYJAVA_SOFTASSERT(klassklass);
         if (klassklass){
             class_getName = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getName","()Ljava/lang/String;");
+            PYJAVA_SOFTASSERT(class_getName);
             PYJAVA_IGNORE_EXCEPTION(env);
             jmethodID tostring = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"toString","()Ljava/lang/String;");
+            PYJAVA_SOFTASSERT(tostring);
             PYJAVA_IGNORE_EXCEPTION(env);
             jstring jname = PYJAVA_ENVCALL(env,CallObjectMethod,klass,tostring);
+            PYJAVA_SOFTASSERT(jname);
             PYJAVA_IGNORE_EXCEPTION(env);
             if (jname){
                 const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
+                PYJAVA_SOFTASSERT(tmp);
                 int off = 0;
                 //if (tmp[0]=='c' && tmp[1]=='l' && tmp[2]=='a' && tmp[3]=='s' && tmp[4]=='s' && tmp[5]==' ')
                 //    off = 6;
                 pyjava_free(name);
                 name = strcpy((char*)pyjava_malloc(sizeof(char)*strlen(tmp+off)),tmp+off);
+                PYJAVA_SOFTASSERT(name);
                 PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
                 PYJAVA_ENVCALL(env,DeleteLocalRef,jname);
             }
@@ -576,28 +638,38 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
         }
 
         ret->klass = PYJAVA_ENVCALL(env,NewGlobalRef,klass);
+        PYJAVA_SOFTASSERT(ret->klass);
         ret->toString = PYJAVA_ENVCALL(env,GetMethodID,klass,"toString","()Ljava/lang/String;");
+        PYJAVA_SOFTASSERT(ret->toString);
         PYJAVA_IGNORE_EXCEPTION(env);
         ret->hashCode = PYJAVA_ENVCALL(env,GetMethodID,klass,"hashCode","()I");
+        PYJAVA_SOFTASSERT(ret->hashCode);
         PYJAVA_IGNORE_EXCEPTION(env);
         ret->class_getName = class_getName;
         ret->dir = PyList_New(0);
+        PYJAVA_ASSERT(ret->dir);
+        ret->pto.tp_dict = PyDict_New();
+        PYJAVA_ASSERT(ret->pto.tp_dict);
         // parent class
         {
             jclass klass = ret->klass;
             if (klass){
                 jclass klassklass = PYJAVA_ENVCALL(env,GetObjectClass,klass);
+                PYJAVA_SOFTASSERT(klassklass);
                 PYJAVA_IGNORE_EXCEPTION(env);
                 if (klassklass){
                     PyObject * lbases = PyList_New(0);
+                    PYJAVA_SOFTASSERT(lbases);
                     // super class
                     jmethodID getsuper = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getSuperclass","()Ljava/lang/Class;");
+                    PYJAVA_SOFTASSERT(getsuper);
                     PYJAVA_IGNORE_EXCEPTION(env);
                     if (getsuper){
                         jclass super = PYJAVA_ENVCALL(env,CallObjectMethod,klass,getsuper);
                         PYJAVA_IGNORE_EXCEPTION(env);
                         if (super){
                             PyObject * base = (PyObject*)pyjava_classAsType(env,super);
+                            PYJAVA_SOFTASSERT(base);
                             if (base){
                                 PyList_Append(lbases,base);
                                 Py_DecRef(base);
@@ -607,14 +679,17 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                     }
                     // TODO add interfaces
                     jmethodID getif = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getInterfaces","()[Ljava/lang/Class;");
+                    PYJAVA_SOFTASSERT(getif);
                     PYJAVA_IGNORE_EXCEPTION(env);
                     if (getif){
                         jclass ifs = PYJAVA_ENVCALL(env,CallObjectMethod,klass,getif);
+                        PYJAVA_SOFTASSERT(ifs);
                         PYJAVA_IGNORE_EXCEPTION(env);
                         if (ifs){
                             for (jsize i = 0;i<PYJAVA_ENVCALL(env,GetArrayLength,ifs);i++){
                                 PYJAVA_IGNORE_EXCEPTION(env);
                                 jclass ifc = PYJAVA_ENVCALL(env,GetObjectArrayElement,ifs,i);
+                                PYJAVA_SOFTASSERT(ifc);
                                 PYJAVA_IGNORE_EXCEPTION(env);
                                 if (ifc){
                                     PyObject * base = (PyObject*)pyjava_classAsType(env,ifc);
@@ -628,6 +703,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                         }
                     }
                     PyObject * bases = PyList_AsTuple(lbases);
+                    PYJAVA_SOFTASSERT(bases);
                     Py_DecRef(lbases);
                     ret->pto.tp_bases = bases;
                     PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);

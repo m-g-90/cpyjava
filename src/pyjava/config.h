@@ -37,6 +37,20 @@
     #define PYJAVA_DLLSPEC
 #endif
 
+#define _PYJAVA_TOSTRING(X) #X
+#define PYJAVA_TOSTRING(X) _PYJAVA_TOSTRING(X)
+
+#if defined(QT_DEBUG) || defined(DEBUG)
+#define PYJAVA_SOFTASSERT(X) if (!(X)) { printf("\nSoft assertion failed:\n\tExpression: %s\n\tLocation: %s:%d\n",PYJAVA_TOSTRING(X),__FILE__,__LINE__); }
+#else
+#define PYJAVA_SOFTASSERT(X)
+#endif
+
+#if defined(QT_DEBUG) || defined(DEBUG)
+#define PYJAVA_ASSERT(X) if (!(X)) { printf("\nAssertion failed:\n\tExpression: %s\n\tLocation: %s:%d\n",PYJAVA_TOSTRING(X),__FILE__,__LINE__); abort(); }
+#else
+#define PYJAVA_ASSERT(X)
+#endif
 
 
 #endif // CONFIG_H

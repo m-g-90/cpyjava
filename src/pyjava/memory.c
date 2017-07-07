@@ -114,7 +114,7 @@ void pyjava_free(void * ptr){
     tfree += block##I##_freecount * I ;\
     tover += (block##I##_usecount + block##I##_freecount) * sizeof(mem_block);
 
-PyObject * pyjava_memory_statistics(){
+PyObject * pyjava_memory_statistics(const char * cmd){
 
     PyObject * ret = PyUnicode_FromString("Memory Statistics:\n");
 
@@ -129,9 +129,23 @@ PyObject * pyjava_memory_statistics(){
 
     PyUnicode_AppendAndDel(&ret,PyUnicode_FromFormat("\tTotal: Used: %d bytes Free: %d bytes Overhead: %d bytes\n",tused,tfree,tover));
 
+    if (cmd){
+        if (!strcmp(cmd,"used")){
+            Py_DecRef(ret);
+            return PyLong_FromSize_t(tused);
+        } else if (!strcmp(cmd,"all")){
+
+        } else {
+            Py_DecRef(ret);
+            PyErr_SetString(PyExc_RuntimeWarning,"unknown command");
+            return NULL;
+        }
+    }
+
     return ret;
 
 }
+
 
 
 #ifdef __cplusplus

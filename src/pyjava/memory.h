@@ -28,7 +28,7 @@ extern "C"{
 void * pyjava_malloc(size_t size);
 void pyjava_free(void * ptr);
 
-PyObject * pyjava_memory_statistics();
+PyObject * pyjava_memory_statistics(const char *cmd);
 
 #ifdef __cplusplus
 }

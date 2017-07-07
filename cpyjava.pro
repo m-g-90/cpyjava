@@ -11,6 +11,8 @@ TEMPLATE = app
 
 SOURCES += $$PWD/src/main.c
 
+DEFINES += DEBUG
+
 win32 {
 
     JDK_PATH = "C:/Program Files/Java/jdk1.8.0_111"
@@ -44,3 +46,9 @@ unix {
 
 
 include(cpyjava.pri)
+
+RESOURCES +=
+
+DISTFILES +=
+
+HEADERS +=

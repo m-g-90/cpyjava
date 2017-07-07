@@ -22,6 +22,7 @@
 #include "pyjava/memory.h"
 #include "pyjava/jvm.h"
 #include "pyjava/config.h"
+#include "pyjava/selftest.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -88,6 +89,42 @@ static PyObject * pyjava_callMethod(PyObject *self, PyObject *_args) {
     return ret;
 
 }
+
+static PyObject * pyjava_hasMethod(PyObject *self, PyObject *_args) {
+    (void)self;
+
+    PyObject * obj = NULL;
+    const char * methname = NULL;
+    PyObject * args = NULL;
+    if (!PyArg_ParseTuple(_args, "Os", &obj,&methname,&args)){
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_Exception,"cpyjava.callMethod takes 2 arguments: object,method name");
+        return NULL;
+    }
+
+    PYJAVA_START_JAVA(env);
+
+    int ret = 0;
+
+    if (env){
+        ret = pyjava_hasFunction(env, obj,methname);
+    }
+
+    PYJAVA_END_JAVA(env);
+
+    if (PyErr_Occurred()){
+        return NULL;
+    }
+
+    if (ret){
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+
+}
+
+
 static PyObject * pyjava_readField(PyObject *self, PyObject *_args) {
     (void)self;
 
@@ -159,16 +196,49 @@ static PyObject * pyjava_with_java_exit(PyObject * self, PyObject *_args){
     pyjava_exit();
     Py_RETURN_TRUE;
 }
-static PyObject * pyjava_mem_stat(PyObject * self, PyObject *_args){
+
+static PyObject * pyjava_selftest(PyObject *  self,PyObject * _args){
     (void)self;
     (void)_args;
 
-    return pyjava_memory_statistics();
-}
-static PyObject * pyjava_symbols(PyObject * _dont_care, PyObject *_args){
-    (void)_dont_care;
+    const char ** test = pyjava_selftests;
+    int failed = 0;
+    while (*test){
+        PyRun_SimpleString(*test);
+        if (PyErr_Occurred()){
+            PyErr_Print();
+            PyErr_Clear();
+            failed = 1;
+        }
+        test++;
+    }
 
-    PyObject * self;
+    if (failed){
+        PyErr_SetString(PyExc_RuntimeError,"cpyjava selftest failed");
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+
+}
+
+static PyObject * pyjava_mem_stat(PyObject * self, PyObject *_args){
+    (void)self;
+
+    const char * cmd = NULL;
+    if (!PyArg_ParseTuple(_args, "|s", &cmd)){
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_Exception,"cpyjava.memstat takes 1 string arguments");
+        return NULL;
+    }
+
+    return pyjava_memory_statistics(cmd);
+}
+static PyObject * pyjava_symbols(PyObject * module, PyObject *_args){
+
+    (void)module;
+
+    PyObject * self = NULL;
     if (!PyArg_ParseTuple(_args, "O", &self)){
         if (!PyErr_Occurred())
             PyErr_SetString(PyExc_Exception,"");
@@ -238,11 +308,13 @@ PYJAVA_DLLSPEC void JNICALL pyjava_registerObject(JNIEnv * env,jobject dont_care
 static PyMethodDef cpyjavamethods[] = {
     {"getType",  pyjava_getType, METH_VARARGS,""},
     {"callMethod",  pyjava_callMethod, METH_VARARGS,""},
+    {"hasMethod",  pyjava_hasMethod, METH_VARARGS,""},
     {"readField",  pyjava_readField, METH_VARARGS,""},
     {"writeField",  pyjava_writeField, METH_VARARGS,""},
     {"_with_java_enter",  pyjava_with_java_enter, METH_NOARGS,""},
     {"_with_java_exit",  pyjava_with_java_exit, METH_NOARGS,""},
-    {"memstat",pyjava_mem_stat,METH_NOARGS,""},
+    {"selftest",  pyjava_selftest, METH_NOARGS,""},
+    {"memstat",pyjava_mem_stat,METH_VARARGS,""},
     {"symbols",pyjava_symbols,METH_VARARGS,""},
     {NULL, NULL, 0, NULL}
 };
@@ -259,12 +331,16 @@ static struct PyModuleDef cpyjavamodule = {
     0
 };
 
+static PyObject * _pyjava_module = NULL;
+
 #ifdef __cplusplus
 extern "C"
 #endif
 PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
 	
     PyObject * ret = PyModule_Create(&cpyjavamodule);
+
+    _pyjava_module = ret;
 
     PyObject * globals = PyDict_New();
     PyDict_SetItemString(globals, "__builtins__", PyEval_GetBuiltins());
@@ -302,6 +378,11 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
                     "            return self.__dict__[item]\n"
                     "        cpyjava = self._import('cpyjava')\n"
                     "        item = str(item)\n"
+                    "        try:\n"
+                    "            if cpyjava.hasMethod(cpyjava.getType(self.getName()),item):\n"
+                    "                return (lambda c,t,i: lambda *args : c.callMethod(t,i,args))(cpyjava,cpyjava.getType(self.getName()),item)\n"
+                    "        except:\n"
+                    "            pass\n"
                     "        try:\n"
                     "            t = cpyjava.readField(cpyjava.getType(self.getName()),item)\n"
                     "            if t is not None:\n"
@@ -392,6 +473,23 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
 
 }
 
+PYJAVA_DLLSPEC PyObject * pyjava_getModule(void) {
+    if (!_pyjava_module){
+        PyObject * m = PyImport_ImportModule("cpyjava");
+        if (m){
+            Py_DecRef(m);
+        }
+    }
+
+    if (_pyjava_module){
+        Py_IncRef(_pyjava_module);
+        return _pyjava_module;
+    }
+
+    if (!PyErr_Occurred())
+        PyErr_BadInternalCall();
+    return NULL;
+}
 
 #ifdef __cplusplus
 }

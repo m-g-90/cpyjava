@@ -59,12 +59,15 @@ typedef int (*pyjava_native_converter_j2p_t)(JNIEnv * env,char ntype,PyObject * 
 PYJAVA_DLLSPEC void pyjava_registerNativeConversion(char ntype,pyjava_native_converter_j2p_t fnc);
 
 
+PYJAVA_DLLSPEC PyObject * pyjava_getModule(void);
 
 // blow must be compatible with PyMODINIT_FUNC
 #ifdef __cplusplus
 extern "C"
 #endif
 PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void);
+
+
 
 #ifdef __cplusplus
 }
