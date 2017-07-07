@@ -8,7 +8,9 @@ Features:
   
 Passing python objects to java is currently not planned.
 
-This module is written exclusively in C. The build system for python modules is not yet implemented. Use the executable project to test this library. Alternatively, this library can be added easily to a project with an embedded python interpreter.
+This module is written exclusively in C. The build system for python modules is not yet implemented. Use the executable project to test this library. Alternatively, this library can be added easily to a project with an embedded python interpreter. 
+
+Note: the project currently uses a .pro file (qmake/Qt), but doesn't require/use Qt.
 
 Examples:
 
