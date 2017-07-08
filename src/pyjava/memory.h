@@ -18,7 +18,7 @@
 
 #ifndef PYJAVA_MEMORY_H
 #define PYJAVA_MEMORY_H
-#include "Python.h"
+#include "pyjava/config.h"
 #include <malloc.h>
 
 

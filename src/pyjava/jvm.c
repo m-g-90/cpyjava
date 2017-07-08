@@ -81,7 +81,7 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
             JavaVMInitArgs initArgs;
             initArgs.version = JNI_VERSION_1_8;
             initArgs.ignoreUnrecognized = JNI_TRUE;
-            JavaVMOption options[10];
+            JavaVMOption options[50];
             int optioncount = 0;
             if (pyjava_jnicheck){
                 options[optioncount].extraInfo = NULL;
@@ -91,6 +91,33 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
                 options[optioncount+2].extraInfo = NULL;
                 options[optioncount+2].optionString = "-Xcheck:jni:trace";
                 optioncount += 3;
+                if (0){
+                    options[optioncount].extraInfo = NULL;
+                    options[optioncount].optionString = "-verbose";
+                    optioncount += 1;
+                }
+            }
+            //tuning collector
+            {
+                options[optioncount].extraInfo = NULL;
+                options[optioncount].optionString = "-XX:+UseG1GC";
+                optioncount += 1;
+                options[optioncount].extraInfo = NULL;
+                options[optioncount].optionString = "-XXfullCompaction";
+                optioncount += 1;
+                options[optioncount].extraInfo = NULL;
+                options[optioncount].optionString = "-XgcPrio:throughput";
+                optioncount += 1;
+                options[optioncount].extraInfo = NULL;
+                options[optioncount].optionString = "-XX:+UseStringCache";
+                optioncount += 1;
+                options[optioncount].extraInfo = NULL;
+                options[optioncount].optionString = "-XX:+UseFastAccessorMethods";
+                optioncount += 1;
+
+
+
+
             }
 
             initArgs.options = options;

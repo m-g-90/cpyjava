@@ -57,13 +57,21 @@ PYJAVA_DLLSPEC void _pyjava_end_java(JNIEnv ** env, int * borrowed);
         PYJAVA_ENVCALL(env,ExceptionClear); \
     }
 
+#define PYJAVA_MULTITHREADING
+#ifndef PYJAVA_MULTITHREADING
+
+#define PYJAVA_YIELD_GIL(STATE)
+#define PYJAVA_RESTORE_GIL(STATE)
+
+#else
+
 #define PYJAVA_YIELD_GIL(STATE) \
     PyThreadState *STATE; \
     STATE = PyEval_SaveThread()
-
 #define PYJAVA_RESTORE_GIL(STATE) \
     PyEval_RestoreThread(STATE)
 
+#endif
 
 #ifdef __cplusplus
 }

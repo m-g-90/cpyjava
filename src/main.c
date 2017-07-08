@@ -10,6 +10,7 @@ int main(int argc,const char ** argv) {
 
     PyImport_AppendInittab("cpyjava", &PyInit_cpyjava);
     Py_Initialize();
+    PyEval_InitThreads();
 
     pyjava_enter();
 
