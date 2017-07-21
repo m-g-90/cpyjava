@@ -147,6 +147,78 @@ PyObject * pyjava_memory_statistics(const char * cmd){
 }
 
 
+typedef struct string_info {
+    uint64_t refcount;
+    struct string_info * next;
+} string_info;
+static string_info * _pyjava_string_reg[PYJAVA_STRING_DEDUP_BUCKETS];
+
+const char * pyjava_dedupstr(const char * str){
+    if (!str)
+        return NULL;
+    const char * ret = pyjava_dedupstaticstr(str);
+    if (str != ret){
+        pyjava_free((void*)str);
+    }
+    return ret;
+}
+
+static int pyjava_cstring_hash(const char * c){
+    int ret = 0;
+    while (*c){
+        ret = ret*23 + (+*c)*3;
+        c++;
+    }
+    return ret;
+}
+const char * pyjava_dedupstaticstr(const char * str){
+    if (!str)
+        return NULL;
+    const unsigned hash = (unsigned)pyjava_cstring_hash(str);
+    string_info * ptr = _pyjava_string_reg[hash%PYJAVA_STRING_DEDUP_BUCKETS];
+    while (ptr){
+        const char * sptr = (const char*)(ptr+1);
+        if (!strcmp(sptr,str)){
+            break;
+        }
+    }
+    if (ptr){
+        ptr->refcount++;
+        //printf("deduped: %s\n",(const char*)(ptr+1));
+        return (const char*)(ptr+1);
+    } else {
+        ptr = (string_info*) malloc(sizeof(string_info)+strlen(str)+1);
+        ptr->refcount = 1;
+        ptr->next = _pyjava_string_reg[hash%PYJAVA_STRING_DEDUP_BUCKETS];
+        _pyjava_string_reg[hash%PYJAVA_STRING_DEDUP_BUCKETS] = ptr;
+        strcpy((char *)(ptr+1),str);
+        return (const char*)(ptr+1);
+    }
+
+}
+
+void pyjava_freestr(const char * str){
+    const unsigned hash = (unsigned)pyjava_cstring_hash(str);
+    string_info * ptr = ((string_info*)(str))-1;
+    string_info * seek = _pyjava_string_reg[hash%PYJAVA_STRING_DEDUP_BUCKETS];
+    string_info * prev = NULL;
+    while (seek){
+        if (seek==ptr){
+            seek->refcount--;
+            if (!seek->refcount){
+                if (prev){
+                    prev->next = seek->next;
+                } else {
+                    _pyjava_string_reg[hash%PYJAVA_STRING_DEDUP_BUCKETS] = seek->next;
+                }
+                free(ptr);
+            }
+            return;
+        }
+    }
+    PYJAVA_ASSERT(0); // invalid string pointer detected ()
+}
+
 
 #ifdef __cplusplus
 }

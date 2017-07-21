@@ -30,6 +30,18 @@ void pyjava_free(void * ptr);
 
 PyObject * pyjava_memory_statistics(const char *cmd);
 
+/*
+ * ONLY pass strings that have been allocated with pyjava_malloc, and which should be cleaned up if deduplicated
+ */
+const char * pyjava_dedupstr(const char * str);
+
+/*
+ * return a deduplicated string pointer. input string pointer will not be free/referenced
+ */
+const char * pyjava_dedupstaticstr(const char * str);
+
+void pyjava_freestr(const char * str);
+
 #ifdef __cplusplus
 }
 #endif

@@ -751,7 +751,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                                         PYJAVA_IGNORE_EXCEPTION(env);
                                         //function name
                                         {
-                                            methdef->name = strcpy((char*)pyjava_malloc(sizeof(char)*(strlen("<init>")+1)),"<init>");
+                                            methdef->name = pyjava_dedupstaticstr("<init>");
                                         }
                                         //modifiers
                                         {
@@ -860,7 +860,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                                                     const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
                                                     PYJAVA_IGNORE_EXCEPTION(env);
                                                     if (tmp){
-                                                        methdef->name = strcpy((char*)pyjava_malloc(sizeof(char)*(strlen(tmp)+1)),tmp);
+                                                        methdef->name = pyjava_dedupstaticstr(tmp);
                                                     }
                                                     PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
                                                 }
@@ -1032,7 +1032,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                                                 {
                                                     const char  *tmp = PYJAVA_ENVCALL(env,GetStringUTFChars,jname, 0);
                                                     if (tmp){
-                                                        fielddef->name = strcpy((char*)pyjava_malloc(sizeof(char)*(strlen(tmp)+1)),tmp);
+                                                        fielddef->name = pyjava_dedupstaticstr(tmp);
                                                     }
                                                     PYJAVA_ENVCALL(env,ReleaseStringUTFChars, jname, tmp);
                                                 }
