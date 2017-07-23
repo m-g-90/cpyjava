@@ -19,6 +19,7 @@ unix {
 
     QMAKE_LIBS += $$system($$PYTHON_CONFIG --ldflags)
     QMAKE_CXXFLAGS += $$system($$PYTHON_CONFIG --includes)
+    QMAKE_CFLAGS += $$system($$PYTHON_CONFIG --includes)
     
 }
 
