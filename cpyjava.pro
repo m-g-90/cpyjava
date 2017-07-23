@@ -29,6 +29,8 @@ win32 {
 }
 unix {
 
+    QMAKE_CFLAGS += -std=c99
+
     INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include"
     INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include/linux"
 
