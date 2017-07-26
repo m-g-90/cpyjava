@@ -11,8 +11,6 @@ TEMPLATE = app
 
 SOURCES += $$PWD/src/main.c
 
-DEFINES += DEBUG
-
 win32 {
 
     JDK_PATH = "C:/Program Files/Java/jdk1.8.0_111"
@@ -31,20 +29,19 @@ win32 {
 }
 unix {
 
+    QMAKE_CFLAGS += -std=c99
+
     INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include"
     INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include/linux"
-    INCLUDEPATH += "/usr/include/python3.5m"
 
     LIBS += -L"/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server"
     LIBS += -L"/usr/lib/jvm/java-8-openjdk-amd64/lib"
     LIBS += -ljvm
-    LIBS += -lpython3.5m
-    LIBS += -ldl
 
 }
 
 
-
+include(.python.pri)
 include(cpyjava.pri)
 
 RESOURCES +=

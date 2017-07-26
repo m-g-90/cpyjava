@@ -1,3 +1,5 @@
+![](https://travis-ci.org/m-g-90/cpyjava.svg?branch=master)
+
 python extension to use java objects.
 
 Features:
