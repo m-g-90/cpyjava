@@ -130,12 +130,29 @@ static PyObject * _pyjava_convj2p(JNIEnv * env,PyJavaType * type, jobject obj){
     return NULL;
 }
 
+static PyJavaObject * _pyjava_objectmap[PYJAVA_OBJECT_DEDUP_BUCKETS];
+
 static PyObject * _pyjava_wrapObject(JNIEnv * env, jobject obj,PyJavaType * type){
 
-    if (type) {
+    const unsigned hash = (unsigned) pyjava_method_cache_identityHash(env,obj);
+    {
+
+        PyJavaObject * cur = _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS];
+        while (cur){
+            if (PYJAVA_ENVCALL(env,IsSameObject,obj,cur->obj)){
+                Py_IncRef((PyObject*)cur);
+                return (PyObject*)cur;
+            }
+            cur = (PyJavaObject*) cur->_dedupll;
+        }
+    }
+
+    if (type) {       
 
         PyJavaObject * r = (PyJavaObject *) pyjava_malloc(sizeof(PyJavaObject));
         memset(r,0,sizeof(PyJavaObject));
+        r->_dedupll = _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS];
+        _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS] = r;
         r->ob_base.ob_refcnt = 1;
         Py_IncRef((PyObject*)type);
         //r->ob_base.ob_type = &(type->pto);
@@ -148,6 +165,27 @@ static PyObject * _pyjava_wrapObject(JNIEnv * env, jobject obj,PyJavaType * type
 
     return NULL;
 
+}
+
+void _pyjava_removededupobject(JNIEnv * env,PyJavaObject * o){
+    const unsigned hash = (unsigned) pyjava_method_cache_identityHash(env,o->obj);
+    {
+
+        PyJavaObject * cur = _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS];
+        PyJavaObject * prev = NULL;
+        while (cur){
+            if (PYJAVA_ENVCALL(env,IsSameObject,o->obj,cur->obj)){
+                if (prev){
+                    prev->_dedupll = cur->_dedupll;
+                } else {
+                    _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS] = (PyJavaObject*) cur->_dedupll;
+                }
+                return;
+            }
+            prev = cur;
+            cur = (PyJavaObject*) cur->_dedupll;
+        }
+    }
 }
 
 PyObject * pyjava_asWrappedObject(JNIEnv * env, PyObject * obj){

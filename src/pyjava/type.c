@@ -28,18 +28,17 @@
 extern "C"{
 #endif
 
+void _pyjava_removededupobject(JNIEnv * env,PyJavaObject * o);
 void pyjava_type_dealloc(PyJavaObject * self)
 {
-    (void)self;
 
+    PYJAVA_START_JAVA(env);
+    _pyjava_removededupobject(env,self);
     jobject obj = self->obj;
     self->obj = NULL;
     pyjava_free(self);
-    PYJAVA_YIELD_GIL(gstate);
-    PYJAVA_START_JAVA(env);
     PYJAVA_ENVCALL(env,DeleteGlobalRef,obj);
     PYJAVA_END_JAVA(env);
-    PYJAVA_RESTORE_GIL(gstate);
 }
 
 static int pyjava_cstring_hash(const char * c){

@@ -28,6 +28,7 @@ extern "C"{
 typedef struct PyJavaObject {
     PyObject_HEAD
     jobject obj;
+    void * _dedupll;
 } PyJavaObject;
 
 
