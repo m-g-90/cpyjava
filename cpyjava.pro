@@ -7,6 +7,14 @@ TARGET = cpyjava
 CONFIG += console
 CONFIG -= app_bundle
 
+travis {
+    DESTDIR = ~/build/m-g-90/cpyjava
+    OBJECTS_DIR = $$DESTDIR/.obj
+    MOC_DIR = $$DESTDIR/.moc
+    RCC_DIR = $$DESTDIR/.qrc
+    UI_DIR = $$DESTDIR/.ui
+}
+
 TEMPLATE = app
 
 SOURCES += $$PWD/src/main.c
