@@ -27,7 +27,7 @@ compiler:
 script:
   - qmake -makefile -o Makefile "CONFIG+= travis release " cpyjava.pro
   - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make ; fi
-  - if [ ${COVERITY_SCAN_BRANCH} == 1 ]; then cat /tmp/coverity-scan-analysis/cov-int/build-log.txt ; fi
+  - if [ ${COVERITY_SCAN_BRANCH} == 1 ]; then cat ~/build/m-g-90/cpyjava/cov-int/build-log.txt ; fi
 
 branches:
   only:
