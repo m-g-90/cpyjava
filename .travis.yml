@@ -28,12 +28,17 @@ script:
   - qmake -makefile -o Makefile "CONFIG+= travis release " cpyjava.pro
   - make
 
+branches:
+  only:
+  - master
+  - coverity_scan
+
 addons:
   coverity_scan:
     project:
       name: "m-g-90/cpyjava"
       description: ""
-    notification_email: ""
+    notification_email: "29159709+m-g-90@users.noreply.github.com"
     build_command_prepend: "qmake -makefile -o Makefile \"CONFIG+= travis release \" cpyjava.pro"
     build_command: make
-    branch_pattern: master
+    branch_pattern: coverity_scan
