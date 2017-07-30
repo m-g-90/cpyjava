@@ -522,6 +522,15 @@ void pyjava_setField(JNIEnv * env, PyObject * _obj,const char * name,PyObject * 
 
 void pyjava_conversion_initType(JNIEnv * env,PyJavaType * type);
 
+static int _pyjava_ptrinlist(PyObject * list,PyObject * ptr){
+    for (Py_ssize_t i = 0;i<PyList_Size(list);i++){
+        if (PyList_GET_ITEM(list,i) == ptr){
+            return 1;
+        }
+    }
+    return 0;
+}
+
 PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
 
 	if (!klass){
@@ -670,13 +679,12 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                             PyObject * base = (PyObject*)pyjava_classAsType(env,super);
                             PYJAVA_SOFTASSERT(base);
                             if (base){
-                                PyList_Append(lbases,base);
-                                Py_DecRef(base);
+                                ret->pto.tp_base = (PyTypeObject*)base;
                             }
                             PYJAVA_ENVCALL(env,DeleteLocalRef,super);
                         }
                     }
-                    // TODO add interfaces
+                    //add interfaces
                     jmethodID getif = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getInterfaces","()[Ljava/lang/Class;");
                     PYJAVA_SOFTASSERT(getif);
                     PYJAVA_IGNORE_EXCEPTION(env);
@@ -701,10 +709,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                             PYJAVA_ENVCALL(env,DeleteLocalRef,ifs);
                         }
                     }
-                    PyObject * bases = PyList_AsTuple(lbases);
-                    PYJAVA_SOFTASSERT(bases);
-                    Py_DecRef(lbases);
-                    ret->pto.tp_bases = bases;
+                    ret->pto.tp_bases = lbases;
                     PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);
                 }
             }
@@ -1220,10 +1225,48 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
 
         pyjava_init_type_extensions(env,ret);
 
+        //fake mro (pt1)
+        PyObject * bases = ret->pto.tp_bases;
+        if (ret->pto.tp_base){
+            ret->pto.tp_bases = PyTuple_New(1);
+            Py_IncRef((PyObject*)ret->pto.tp_base);
+            PyTuple_SetItem(ret->pto.tp_bases,0,(PyObject*)ret->pto.tp_base);
+        } else {
+            ret->pto.tp_bases = NULL;
+        }
+
         if (PyType_Ready(&(ret->pto))){
             //TODO cleanup
             return NULL;
         }
+        //fake mro (pt2)
+        if (PyList_Size(bases) > 0){
+            PyObject * nbases = PySequence_List(ret->pto.tp_bases);
+            PyObject * nmro = PySequence_List(ret->pto.tp_mro);
+            for (Py_ssize_t i = 0;i<PyList_Size(bases);i++){
+                PyTypeObject * curbase = (PyTypeObject *) PyList_GET_ITEM(bases,i);
+                if (!_pyjava_ptrinlist(nbases,(PyObject*)curbase)){
+                    PyList_Append(nbases,(PyObject*)curbase);
+                    if (!_pyjava_ptrinlist(nmro,(PyObject*)curbase)){
+                        PyList_Append(nmro,(PyObject*)curbase);
+                        for (Py_ssize_t j = 0; j < PyTuple_Size(curbase->tp_mro);j++){
+                            if (!_pyjava_ptrinlist(nmro,PyTuple_GET_ITEM(curbase->tp_mro,j))){
+                                PyList_Append(nmro,PyTuple_GET_ITEM(curbase->tp_mro,j));
+                            }
+                        }
+                    }
+                }
+            }
+            Py_DecRef(ret->pto.tp_mro);
+            ret->pto.tp_mro = PyList_AsTuple(nmro);
+            Py_DecRef(nmro);
+            Py_DecRef(ret->pto.tp_bases);
+            ret->pto.tp_bases = PyList_AsTuple(nbases);
+            Py_DecRef(nbases);
+        }
+
+        Py_DecRef(bases);
+
 
         pyjava_typecache_register(env,ret);
 

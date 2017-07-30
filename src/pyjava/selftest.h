@@ -18,7 +18,7 @@ static const char * pyjava_selftests[] = {
     "def javacall():\n"
     "\timport cpyjava\n"
     "\tp = cpyjava.packages.java.lang.System.out.print\n"
-    "\tfor x in range (0,1000):\n"
+    "\tfor x in range (0,100):\n"
     "\t\tp('')\n"
     "t = []\n"
     "for x in range(0,100):\n"
@@ -27,11 +27,25 @@ static const char * pyjava_selftests[] = {
     "for x in t:\n"
     "\tx.join()\n"
 
-
+    ,
+    "import cpyjava\n"
+    "ok = True\n"
+    "try:\n"
+    "\tcpyjava.packages.java.lang.System.err.print(1,2,3,4,5,6) #expected to fail\n"
+    "\tok = False\n"
+    "except:\n"
+    "\tpass\n"
+    "if not ok:\n"
+    "\traise Exception('Java Exception was not transfered to python.')"
 
     ,
     "import cpyjava\n"
-    "cpyjava\n"
+    "if not isinstance(cpyjava.packages.java.util.HashMap(),cpyjava.getType('java/util/Map')):\n"
+    "\traise Exception('Java Interface inheritance failed.')\n"
+    "if not isinstance(cpyjava.packages.java.util.HashMap(),cpyjava.getType('java/util/HashMap')):\n"
+    "\traise Exception('Java Class inheritance failed.')\n"
+    "if isinstance(cpyjava.packages.java.util.HashMap(),cpyjava.getType('java/util/TreeMap')):\n"
+    "\traise Exception('Java Class inheritance failed (false positive).')\n"
 
     ,
     NULL
