@@ -1,4 +1,5 @@
-![](https://travis-ci.org/m-g-90/cpyjava.svg?branch=master)
+![](https://travis-ci.org/m-g-90/cpyjava.svg?branch=master) ![](https://scan.coverity.com/projects/13312/badge.svg)
+
 
 python extension to use java objects.
 
