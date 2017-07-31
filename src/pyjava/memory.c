@@ -181,6 +181,7 @@ const char * pyjava_dedupstaticstr(const char * str){
         if (!strcmp(sptr,str)){
             break;
         }
+        ptr = ptr-> next;
     }
     if (ptr){
         ptr->refcount++;
