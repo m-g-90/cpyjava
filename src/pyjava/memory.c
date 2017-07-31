@@ -215,6 +215,8 @@ void pyjava_freestr(const char * str){
             }
             return;
         }
+        prev = seek;
+        seek = seek->next;
     }
     PYJAVA_ASSERT(0); // invalid string pointer detected ()
 }

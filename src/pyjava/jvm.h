@@ -40,7 +40,7 @@ PYJAVA_DLLSPEC void _pyjava_end_java(JNIEnv ** env, int * borrowed);
     _pyjava_start_java(& ENVVAR ,& _borrowed_##ENVVAR )
 
 #define PYJAVA_END_JAVA(ENVVAR)\
-    if (PYJAVA_ENVCALL(ENVVAR,ExceptionCheck)) { \
+    if (ENVVAR && PYJAVA_ENVCALL(ENVVAR,ExceptionCheck)) { \
     PYJAVA_ENVCALL(ENVVAR,ExceptionDescribe);\
     abort();\
     }\

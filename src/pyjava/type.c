@@ -297,7 +297,7 @@ PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,P
             return NULL;
         }
     }
-    if (!PyTuple_CheckExact(tuple)){
+    if (tuple && !PyTuple_CheckExact(tuple)){
         PyErr_BadArgument();
         return NULL;
     }
@@ -309,7 +309,7 @@ PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,P
 
     const int namehash = pyjava_cstring_hash(name);
 
-    Py_ssize_t argcount = PyTuple_Size(tuple);
+    Py_ssize_t argcount = tuple ? PyTuple_Size(tuple) : 0;
 
     PyJavaMethod * _method = type->methods[(unsigned)namehash%(PYJAVA_SYMBOL_BUCKET_COUNT)];
     while (_method){
@@ -453,6 +453,7 @@ PyObject * pyjava_getField(JNIEnv * env, PyObject * _obj,const char * name){
 
         if (!field->getter){
             PyErr_SetString(PyExc_NotImplementedError,"access to this java field is not yet implemented");
+            return NULL;
         }
 
         return field->getter(env,field->fieldid,obj?obj->obj:NULL,type->klass);
@@ -505,6 +506,7 @@ void pyjava_setField(JNIEnv * env, PyObject * _obj,const char * name,PyObject * 
 
         if (!field->setter){
             PyErr_SetString(PyExc_NotImplementedError,"access to this java field is not yet implemented");
+            return;
         }
 
         jvalue jval;
