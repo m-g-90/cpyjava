@@ -118,7 +118,16 @@ static const char * pyjava_selftests[] = {
     "if len(list.toArray()) != list.size():\n"
     "\traise Exception('unexpected list/array behaviour. ['+str(len(list.toArray()))+','+str(list.size())+']')\n"
 
-
+    ,
+    "import cpyjava\n"
+    "i1 = cpyjava.packages.java.lang.Integer(123)\n"
+    "i2 = cpyjava.packages.java.lang.Integer(123)\n"
+    "if i1 is i2:\n"
+    "\traise Exception('identity comparison failed')\n"
+    "if i1 != i2:\n"
+    "\traise Exception('rich comparison (equals) failed')\n"
+    "if not (i1 == i2):\n"
+    "\traise Exception('rich comparison (equals) failed')\n"
 
     ,
     NULL
