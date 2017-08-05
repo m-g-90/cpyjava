@@ -38,6 +38,8 @@ jclass pyjava_set_class(JNIEnv * env);
 jclass pyjava_object_class(JNIEnv * env);
 jclass pyjava_iterable_class(JNIEnv * env);
 jclass pyjava_iterator_class(JNIEnv * env);
+jclass pyjava_compareable_class(JNIEnv * env);
+int pyjava_object_equal(JNIEnv * env,jobject o1,jobject o2);
 
 #ifdef __cplusplus
 }

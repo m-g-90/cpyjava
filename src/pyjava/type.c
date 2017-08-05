@@ -19,6 +19,7 @@
 #include "pyjava/type.h"
 #include "pyjava/conversion.h"
 #include "pyjava/memory.h"
+#include "pyjava/method_cache.h"
 #include "pyjava/type_cache.h"
 #include "pyjava/jvm.h"
 #include "pyjava/type_helpers.h"
@@ -230,6 +231,51 @@ static int pyjava_type_setattro( PyObject* self, PyObject* pyname,PyObject * val
         return -1;
     }
     return 0;
+}
+
+static PyObject * pyjava_type_richcompare(PyObject * a, PyObject *b, int op){
+    if (a == b){
+        Py_RETURN_TRUE;
+    }
+    if (!pyjava_isJavaClass(b->ob_type)){
+        switch (op){
+        case Py_NE:
+            Py_RETURN_TRUE;
+        case Py_EQ:
+            Py_RETURN_FALSE;
+        default:
+            Py_RETURN_NOTIMPLEMENTED;
+        }
+    }
+    if (op == Py_EQ || op == Py_NE){
+        PYJAVA_START_JAVA(env);
+        int result = pyjava_object_equal(env,((PyJavaObject*)a)->obj,((PyJavaObject*)b)->obj);
+        pyjava_exception_java2python(env);
+        PYJAVA_END_JAVA(env);
+        if (PyErr_Occurred()){
+            return NULL;
+        }
+        if (result<0){
+            Py_RETURN_NOTIMPLEMENTED;
+        }
+        if (op == Py_EQ){
+            if (result){
+                Py_RETURN_TRUE;
+            } else {
+                Py_RETURN_FALSE;
+            }
+        } else {
+            if (result){
+                Py_RETURN_FALSE;
+            } else {
+                Py_RETURN_TRUE;
+            }
+        }
+    }
+
+    //todo use Compareable interface if present
+
+    Py_RETURN_NOTIMPLEMENTED;
 }
 
 char pyjava_getNType(JNIEnv * env,jclass klass){
@@ -687,7 +733,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                 "java class",              /* tp_doc */
                 0,                         /* tp_traverse */
                 0,                         /* tp_clear */
-                0,                         /* tp_richcompare */
+                pyjava_type_richcompare,   /* tp_richcompare */
                 0,                         /* tp_weaklistoffset */
                 0,                         /* tp_iter */
                 0,                         /* tp_iternext */

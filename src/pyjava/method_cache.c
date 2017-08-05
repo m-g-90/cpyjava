@@ -135,7 +135,25 @@ PYJAVA_METHOD_CACHE_CLASS("java/util/Set",set)
 PYJAVA_METHOD_CACHE_CLASS("java/util/List",list)
 PYJAVA_METHOD_CACHE_CLASS("java/util/Map",map)
 PYJAVA_METHOD_CACHE_CLASS("java/lang/Class",class)
+PYJAVA_METHOD_CACHE_CLASS("java/lang/Comparable",compareable)
 
+
+static jmethodID _pyjava_object_equal = NULL;
+int pyjava_object_equal(JNIEnv * env,jobject o1,jobject o2) {
+    if (!_pyjava_object_class){
+        pyjava_object_class(env);
+    }
+    if (!_pyjava_object_class){
+        return -1;
+    }
+    if (!_pyjava_object_equal){
+        _pyjava_object_equal = PYJAVA_ENVCALL(env,GetMethodID,_pyjava_object_class,"equals","(Ljava/lang/Object;)Z");
+    }
+    if (!_pyjava_object_equal){
+        return -1;
+    }
+    return !! PYJAVA_ENVCALL(env,CallBooleanMethod,o1,_pyjava_object_equal,o2);
+}
 
 void pyjava_method_cache_reset(JNIEnv *env){
     if (_pyjava_identityHash_system) {
