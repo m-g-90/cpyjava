@@ -34,10 +34,12 @@ win32 {
     LIBS += -L"$${JDK_PATH}/lib"
     LIBS += -ljvm
 
+    QMAKE_CFLAGS += /Wall /WX
+
 }
 unix {
 
-    QMAKE_CFLAGS += -std=c99
+    QMAKE_CFLAGS += -std=c99 -Wall
 
     INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include"
     INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include/linux"

@@ -20,6 +20,7 @@
 #include "pyjava/method_cache.h"
 #include "pyjava/pyjava.h"
 #include "pyjava/jvm.h"
+#include "pyjava/type.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -69,6 +70,47 @@ int pyjava_is_class(JNIEnv * env,jobject obj){
     }
     return (int) PYJAVA_ENVCALL(env,IsInstanceOf,obj,_pyjava_is_class_class);
 }
+
+static jmethodID _pyjava_is_array_class = NULL;
+int pyjava_is_arrayclass(JNIEnv * env,jclass obj){
+    if (!_pyjava_is_class_class){
+        pyjava_is_class(env,obj);
+    }
+    if (!_pyjava_is_class_class){
+        return 0;
+    }
+    if (!_pyjava_is_array_class){
+        _pyjava_is_array_class = PYJAVA_ENVCALL(env,GetMethodID,_pyjava_is_class_class,"isArray","()Z");
+    }
+    if (!_pyjava_is_array_class){
+        return 0;
+    }
+    if (PYJAVA_ENVCALL(env,CallBooleanMethod,obj, _pyjava_is_array_class)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+static jmethodID _pyjava_array_sub_class = NULL;
+char pyjava_get_array_sub_NType(JNIEnv *env, jclass klass){
+    if (!pyjava_is_arrayclass(env,klass)){
+        return (char)0;
+    }
+    if (!_pyjava_array_sub_class){
+        _pyjava_array_sub_class = PYJAVA_ENVCALL(env,GetMethodID,_pyjava_is_class_class,"getComponentType","()Ljava/lang/Class;");
+        PYJAVA_ENVCALL(env,ExceptionDescribe);
+    }
+    if (!_pyjava_array_sub_class){
+        return (char)0;
+    }
+    jclass subklass = PYJAVA_ENVCALL(env,CallObjectMethod,klass,_pyjava_array_sub_class);
+    char ret = pyjava_getNType(env,subklass);
+    PYJAVA_ENVCALL(env,DeleteLocalRef,subklass);
+    return ret;
+}
+
+
 
 
 #define PYJAVA_METHOD_CACHE_CLASS(CLASSNAME,SHORTNAME) \

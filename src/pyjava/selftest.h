@@ -107,6 +107,18 @@ static const char * pyjava_selftests[] = {
     "if test != 34534:\n"
     "   raise Exception('setter decorator return value lost')"
 
+    ,
+    "import cpyjava\n"
+    "list = cpyjava.packages.java.util.LinkedList()\n"
+    "list.add(\"1\")\n"
+    "list.add(\"2\")\n"
+    "list.add(\"3\")\n"
+    "if repr(list) != '[1, 2, 3]':\n"
+    "\traise Exception('unexpected list behaviour. '+repr(list))\n"
+    "if len(list.toArray()) != list.size():\n"
+    "\traise Exception('unexpected list/array behaviour. ['+str(len(list.toArray()))+','+str(list.size())+']')\n"
+
+
 
     ,
     NULL

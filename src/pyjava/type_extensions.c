@@ -194,6 +194,27 @@ static PySequenceMethods java_util_List = {
     0// ssizeargfunc sq_inplace_repeat
 };
 
+static Py_ssize_t java_array_length(PyObject * o){
+    Py_ssize_t size = -1;
+    PYJAVA_START_JAVA(env);
+    size = PYJAVA_ENVCALL(env,GetArrayLength,((PyJavaObject*)o)->obj);
+    PYJAVA_END_JAVA(env);
+    return size;
+}
+
+static PySequenceMethods java_object_array = {
+    &java_array_length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    0,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    0,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+
 void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
 
     // some general interfaces. might be overriden later if special behaviour for more complex interfaces is needed
@@ -211,6 +232,13 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
         type->pto.tp_iter = &java_util_Map_tp_iter;
     } else if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_list_class(env))) { // check if this is a list
         type->pto.tp_as_sequence = &java_util_List;
+    } else if (pyjava_is_arrayclass(env,type->klass)){
+        char ntype = pyjava_get_array_sub_NType(env,type->klass);
+        switch (ntype){
+        case 'L':
+        case '[':
+            type->pto.tp_as_sequence = &java_object_array; break;
+        }
     }
 
 }
