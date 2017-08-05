@@ -5,11 +5,13 @@ python extension to use java objects.
 
 Features:
   - supports 'isinstanceof'
-  - conversion from/to java primitive types (excluding arrays) and java.lang.String
+  - conversion from/to java primitive types (for now excluding arrays) and java.lang.String
   - Any other class/object is wrapped and supported via reflection 
   - "brute force" approach to handle function overloading: functions gets selected if the arguments can be converted to the required types
+  - decorators to customize getter,setter and call functionality
+  - function to register an object from java in a python dictionary. This is helpfull to e.g. pass classes of a non-system class loader to python
   
-Passing python objects to java is currently not planned.
+Passing python objects to java is currently not planned. Passing python objects that are wrapped java objects is of course possible.
 
 This module is written exclusively in C. The build system for python modules is not yet implemented. Use the executable project to test this library. Alternatively, this library can be added easily to a project with an embedded python interpreter. 
 
