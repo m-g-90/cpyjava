@@ -156,7 +156,7 @@ static PyObject * _pyjava_wrapObject(JNIEnv * env, jobject obj,PyJavaType * type
             r->_dedupll = _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS];
             _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS] = r;
         } else {
-            r->_dedupll;
+            r->_dedupll = NULL;
         }
         r->ob_base.ob_refcnt = 1;
         r->obj = PYJAVA_ENVCALL(env,NewGlobalRef,obj);

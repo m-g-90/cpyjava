@@ -432,6 +432,7 @@ PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,P
 }
 
 int pyjava_hasFunction(JNIEnv * env, PyObject * _obj,const char * name){
+    (void) env;
     PyJavaType * type;
     PyJavaObject * obj;
     if (PyType_Check(_obj)){
