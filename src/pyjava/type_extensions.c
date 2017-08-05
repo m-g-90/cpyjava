@@ -20,6 +20,7 @@ static Py_ssize_t java_util_Map_Length(PyJavaObject *o){
                     PYJAVA_ENVCALL(env,ExceptionClear);
                     ret = 0;
                 }
+                PYJAVA_END_JAVA(env);
                 return ret;
             }
         }
