@@ -39,7 +39,7 @@ win32 {
 }
 unix {
 
-    QMAKE_CFLAGS += -std=c99 -Wall
+    QMAKE_CFLAGS += -std=c99 -Wall -Werror
 
     INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include"
     INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include/linux"
