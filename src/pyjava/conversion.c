@@ -132,10 +132,11 @@ static PyObject * _pyjava_convj2p(JNIEnv * env,PyJavaType * type, jobject obj){
 
 static PyJavaObject * _pyjava_objectmap[PYJAVA_OBJECT_DEDUP_BUCKETS];
 
-static PyObject * _pyjava_wrapObject(JNIEnv * env, jobject obj,PyJavaType * type){
+static PyObject * _pyjava_wrapObject(JNIEnv * env, jobject obj,PyJavaType * type,int disabledecorator){
+
 
     const unsigned hash = (unsigned) pyjava_method_cache_identityHash(env,obj);
-    {
+    if (!disabledecorator){
 
         PyJavaObject * cur = _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS];
         while (cur){
@@ -151,12 +152,15 @@ static PyObject * _pyjava_wrapObject(JNIEnv * env, jobject obj,PyJavaType * type
 
         PyJavaObject * r = (PyJavaObject *) pyjava_malloc(sizeof(PyJavaObject));
         memset(r,0,sizeof(PyJavaObject));
-        r->_dedupll = _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS];
-        _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS] = r;
+        if (!disabledecorator){
+            r->_dedupll = _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS];
+            _pyjava_objectmap[hash%PYJAVA_OBJECT_DEDUP_BUCKETS] = r;
+        } else {
+            r->_dedupll;
+        }
         r->ob_base.ob_refcnt = 1;
-        Py_IncRef((PyObject*)type);
-        //r->ob_base.ob_type = &(type->pto);
         r->obj = PYJAVA_ENVCALL(env,NewGlobalRef,obj);
+        r->flags.entries.decoself = !!disabledecorator;
         PyObject_INIT(((PyObject*)r),((PyTypeObject*)type));
 
         return (PyObject*) r;
@@ -168,6 +172,11 @@ static PyObject * _pyjava_wrapObject(JNIEnv * env, jobject obj,PyJavaType * type
 }
 
 void _pyjava_removededupobject(JNIEnv * env,PyJavaObject * o){
+
+    if (o->flags.entries.decoself){ // decoself object are not deduplicated
+        return;
+    }
+
     const unsigned hash = (unsigned) pyjava_method_cache_identityHash(env,o->obj);
     {
 
@@ -210,7 +219,7 @@ PyObject * pyjava_asWrappedObject(JNIEnv * env, PyObject * obj){
                     if (type){
                         PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);
                         Py_DecRef((PyObject*)type);
-                        return _pyjava_wrapObject(env,(jobject)klass,type);
+                        return _pyjava_wrapObject(env,(jobject)klass,type,0);
                     }
                     PYJAVA_ENVCALL(env,DeleteLocalRef,klassklass);
                 }
@@ -244,7 +253,7 @@ PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj){
             PyObject * ret = _pyjava_convj2p(env,type,obj);
 
             if (!ret){
-                ret = _pyjava_wrapObject(env,obj,type);
+                ret = _pyjava_wrapObject(env,obj,type,0);
             }
 
             Py_DecRef((PyObject*)type);
@@ -263,6 +272,23 @@ PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj){
 
     PyErr_SetString(PyExc_TypeError,"Failed to convert java object to python (class not found)");
     return NULL;
+
+}
+
+PyObject * pyjava_asUndecoratedObject(JNIEnv * env,PyObject * obj){
+
+    if (pyjava_isJavaClass(obj->ob_type)){
+        PyJavaObject * self = (PyJavaObject*) obj;
+        if (self->flags.entries.decoself){
+            Py_IncRef(obj);
+            return obj;
+        } else {
+            return _pyjava_wrapObject(env,self->obj,(PyJavaType*)self->ob_base.ob_type,1);
+        }
+    } else {
+        PyErr_SetString(PyExc_Exception,"Passed object is not a java object");
+        return NULL;
+    }
 
 }
 

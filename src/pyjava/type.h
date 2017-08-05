@@ -66,6 +66,11 @@ typedef struct PyJavaField {
     pyjava_setFieldHelper_t setter;
     struct PyJavaField * next;
 } PyJavaField;
+typedef struct PyJavaDecoration {
+    PyObject * tp_call;
+    PyObject * tp_getattro;
+    PyObject * tp_setattro;
+} PyJavaDecoration;
 
 #define PYJAVA_SYMBOL_BUCKET_COUNT 32
 typedef struct PyJavaType {
@@ -79,6 +84,8 @@ typedef struct PyJavaType {
     PyObject * dir;
     struct PyJavaType * _tc_next;
     struct PyJavaConverter converter;
+    struct PyJavaDecoration decoration;
+    ternaryfunc tp_call_impl; //don't overwrite tp_call in type_extensions. overwrite this to ensure that decoration works.
 } PyJavaType;
 
 int pyjava_isJavaClass(PyTypeObject * type);

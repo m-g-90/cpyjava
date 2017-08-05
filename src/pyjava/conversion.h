@@ -30,6 +30,7 @@ extern "C"{
 
 int pyjava_asJObject(JNIEnv * env, PyObject * obj, jclass klass, char ntype, jvalue * ret);
 PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj);
+PyObject * pyjava_asUndecoratedObject(JNIEnv *env, PyObject * obj);
 PyObject * pyjava_asWrappedObject(JNIEnv * env, PyObject * obj);
 
 int pyjava_exception_java2python(JNIEnv * env);

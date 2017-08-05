@@ -48,6 +48,67 @@ static const char * pyjava_selftests[] = {
     "\traise Exception('Java Class inheritance failed (false positive).')\n"
 
     ,
+    "import cpyjava\n"
+    "jobject = cpyjava.packages.java.lang.System.out\n"
+    "ok = True\n"
+    "try:\n"
+    "\tjobject('test')\n"
+    "\tok=False\n"
+    "except:\n"
+    "\tpass\n"
+    "if not ok:\n"
+    "\traise Exception(\"invalid java object call didn't raise an exception\")\n"
+    "cpyjava.setCallDecorator(type(jobject),lambda s,d,a: None)\n"
+    "try:\n"
+    "\tjobject('test')\n"
+    "except:\n"
+    "\traise Exception('call decorator was not used')\n"
+
+    ,
+    "import cpyjava\n"
+    "jobject = cpyjava.packages.java.lang.System.out\n"
+    "ok = True\n"
+    "try:\n"
+    "\tjobject.doesnt_exist\n"
+    "\tok=False\n"
+    "except:\n"
+    "\tpass\n"
+    "if not ok:\n"
+    "\traise Exception(\"invalid java field access didn't raise an exception\")\n"
+    "cpyjava.setGetterDecorator(type(jobject),lambda s,d,a: 29384)\n"
+    "test = None\n"
+    "try:\n"
+    "\ttest = jobject.doesnt_exist\n"
+    "except:\n"
+    "\traise Exception('getter decorator was not used')\n"
+    "if test != 29384:\n"
+    "   raise Exception('getter decorator return value lost')"
+
+    ,
+    "import cpyjava\n"
+    "jobject = cpyjava.packages.java.lang.System.out\n"
+    "ok = True\n"
+    "try:\n"
+    "\tjobject.doesnt_exist = 34534\n"
+    "\tok=False\n"
+    "except:\n"
+    "\tpass\n"
+    "if not ok:\n"
+    "\traise Exception(\"invalid java field access didn't raise an exception\")\n"
+    "test = None\n"
+    "def s(*args):\n"
+    "\tglobal test\n"
+    "\ttest = args[3]\n"
+    "cpyjava.setSetterDecorator(type(jobject),s)\n"
+    "try:\n"
+    "\tjobject.doesnt_exist = 34534\n"
+    "except:\n"
+    "\traise Exception('setter decorator was not used')\n"
+    "if test != 34534:\n"
+    "   raise Exception('setter decorator return value lost')"
+
+
+    ,
     NULL
 };
 

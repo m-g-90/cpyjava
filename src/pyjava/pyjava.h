@@ -29,6 +29,13 @@ typedef struct PyJavaObject {
     PyObject_HEAD
     jobject obj;
     void * _dedupll;
+    union {
+        struct {
+            uint32_t decoself : 1; // if 1 then this object will not be affected by decorators.
+            uint32_t reserved : 31;
+        } entries;
+        uint32_t all;
+    } flags;
 } PyJavaObject;
 
 

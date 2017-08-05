@@ -222,6 +222,78 @@ static PyObject * pyjava_selftest(PyObject *  self,PyObject * _args){
 
 }
 
+static PyObject * pyjava_setCallDecorator(PyObject * self, PyObject *_args){
+    (void)self;
+
+    PyObject * type = NULL;
+    PyObject * callback = NULL;
+    if (!PyArg_ParseTuple(_args, "OO", &type,&callback)){
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_Exception,"cpyjava.setCallDecorator takes 2 arguments. A java type and a callback function");
+        return NULL;
+    }
+
+    if (PyType_CheckExact(type) && !pyjava_isJavaClass((PyTypeObject*)type)){
+        PyErr_SetString(PyExc_Exception,"cpyjava.setCallDecorator takes a java type object as the first argument.");
+        return NULL;
+    }
+    PyJavaType * jtype = (PyJavaType*) type;
+
+    Py_IncRef(callback);
+    jtype->decoration.tp_call = callback;
+
+    Py_RETURN_NONE;
+
+}
+
+static PyObject * pyjava_setGetterDecorator(PyObject * self, PyObject *_args){
+    (void)self;
+
+    PyObject * type = NULL;
+    PyObject * callback = NULL;
+    if (!PyArg_ParseTuple(_args, "OO", &type,&callback)){
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_Exception,"cpyjava.setGetterDecorator takes 2 arguments. A java type and a callback function");
+        return NULL;
+    }
+
+    if (PyType_CheckExact(type) && !pyjava_isJavaClass((PyTypeObject*)type)){
+        PyErr_SetString(PyExc_Exception,"cpyjava.setGetterDecorator takes a java type object as the first argument.");
+        return NULL;
+    }
+    PyJavaType * jtype = (PyJavaType*) type;
+
+    Py_IncRef(callback);
+    jtype->decoration.tp_getattro = callback;
+
+    Py_RETURN_NONE;
+
+}
+
+static PyObject * pyjava_setSetterDecorator(PyObject * self, PyObject *_args){
+    (void)self;
+
+    PyObject * type = NULL;
+    PyObject * callback = NULL;
+    if (!PyArg_ParseTuple(_args, "OO", &type,&callback)){
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_Exception,"cpyjava.setSetterDecorator takes 2 arguments. A java type and a callback function");
+        return NULL;
+    }
+
+    if (PyType_CheckExact(type) && !pyjava_isJavaClass((PyTypeObject*)type)){
+        PyErr_SetString(PyExc_Exception,"cpyjava.setSetterDecorator takes a java type object as the first argument.");
+        return NULL;
+    }
+    PyJavaType * jtype = (PyJavaType*) type;
+
+    Py_IncRef(callback);
+    jtype->decoration.tp_setattro = callback;
+
+    Py_RETURN_NONE;
+
+}
+
 static PyObject * pyjava_mem_stat(PyObject * self, PyObject *_args){
     (void)self;
 
@@ -313,6 +385,9 @@ static PyMethodDef cpyjavamethods[] = {
     {"writeField",  pyjava_writeField, METH_VARARGS,""},
     {"_with_java_enter",  pyjava_with_java_enter, METH_NOARGS,""},
     {"_with_java_exit",  pyjava_with_java_exit, METH_NOARGS,""},
+    {"setCallDecorator",pyjava_setCallDecorator,METH_VARARGS,""},
+    {"setGetterDecorator",pyjava_setGetterDecorator,METH_VARARGS,""},
+    {"setSetterDecorator",pyjava_setSetterDecorator,METH_VARARGS,""},
     {"selftest",  pyjava_selftest, METH_NOARGS,""},
     {"memstat",pyjava_mem_stat,METH_VARARGS,""},
     {"symbols",pyjava_symbols,METH_VARARGS,""},

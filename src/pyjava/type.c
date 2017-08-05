@@ -89,8 +89,55 @@ PyObject* pyjava_type_repr(PyJavaObject * self){
     return ret;
 }
 
+static PyObject * pyjava_type_call(PyJavaObject *self, PyObject *args, PyObject *kw){
+
+
+
+    PyJavaType * type = (PyJavaType*) self->ob_base.ob_type;
+    if (type->decoration.tp_call && !self->flags.entries.decoself) {
+        PYJAVA_START_JAVA(env);
+        Py_ssize_t argcount = args ? PyTuple_Size(args) : 0;
+        PyObject * decoargs = PyTuple_New(argcount+2);
+        Py_IncRef((PyObject*)self);
+        PyTuple_SetItem(decoargs,0,(PyObject*)self);
+        PyTuple_SetItem(decoargs,1,(PyObject*)pyjava_asUndecoratedObject(env,(PyObject*)self));
+        for (Py_ssize_t i = 0;i < argcount;i++){
+            PyObject * cur = PyTuple_GetItem(args,i);
+            Py_IncRef(cur);
+            PyTuple_SetItem(decoargs,i+2,cur);
+        }
+        PyObject * decoret = PyObject_Call(type->decoration.tp_call,decoargs,kw);
+        Py_DecRef(decoargs);
+        PYJAVA_END_JAVA(env);
+        return decoret;
+    }
+
+    if (type->tp_call_impl){
+        return type->tp_call_impl((PyObject*)self,args,kw);
+    }
+
+    PyErr_SetString(PyExc_TypeError,"Not callable.");
+    return NULL;
+
+}
+
 static PyObject * _pyjava_method_helper = NULL;
 static PyObject* pyjava_type_getattro( PyObject* self, PyObject* pyname){
+
+    if (((PyJavaType*)self->ob_type)->decoration.tp_getattro && !((PyJavaObject*)self)->flags.entries.decoself){
+        PYJAVA_START_JAVA(env);
+        PyObject * decoargs = PyTuple_New(3);
+        Py_IncRef((PyObject*)self);
+        PyTuple_SetItem(decoargs,0,(PyObject*)self);
+        PyTuple_SetItem(decoargs,1,(PyObject*)pyjava_asUndecoratedObject(env,(PyObject*)self));
+        Py_IncRef(pyname);
+        PyTuple_SetItem(decoargs,2,pyname);
+        PyObject * decoret = PyObject_Call(((PyJavaType*)self->ob_type)->decoration.tp_getattro,decoargs,NULL);
+        Py_DecRef(decoargs);
+        PYJAVA_END_JAVA(env);
+        return decoret;
+    }
+
     if (!PyUnicode_CheckExact(pyname)){
         PyErr_SetString(PyExc_AttributeError,"java object only has string attributes");
         return NULL;
@@ -150,6 +197,27 @@ static PyObject* pyjava_type_getattro( PyObject* self, PyObject* pyname){
     return ret;
 }
 static int pyjava_type_setattro( PyObject* self, PyObject* pyname,PyObject * value){
+
+    if (((PyJavaType*)self->ob_type)->decoration.tp_setattro && !((PyJavaObject*)self)->flags.entries.decoself){
+        PYJAVA_START_JAVA(env);
+        PyObject * decoargs = PyTuple_New(value ? 4 : 3);
+        Py_IncRef((PyObject*)self);
+        PyTuple_SetItem(decoargs,0,(PyObject*)self);
+        PyTuple_SetItem(decoargs,1,(PyObject*)pyjava_asUndecoratedObject(env,(PyObject*)self));
+        Py_IncRef(pyname);
+        PyTuple_SetItem(decoargs,2,pyname);
+        if (value){
+            Py_IncRef(value);
+            PyTuple_SetItem(decoargs,3,value);
+        }
+        PyObject * decoret = PyObject_Call(((PyJavaType*)self->ob_type)->decoration.tp_setattro,decoargs,NULL);
+        Py_DecRef(decoargs);
+        PYJAVA_END_JAVA(env);
+        if (decoret)
+            Py_DecRef(decoret);
+        return PyErr_Occurred() ? -1 : 0;
+    }
+
     if (!PyUnicode_CheckExact(pyname)){
         PyErr_SetString(PyExc_AttributeError,"java object only has string attributes");
         return 0;
@@ -609,7 +677,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                 0,                         /* tp_as_sequence */
                 0,                         /* tp_as_mapping */
                 (Py_hash_t(*)(PyObject*))pyjava_type_hash,          /* tp_hash  */
-                0,                         /* tp_call */
+                (ternaryfunc)pyjava_type_call,                         /* tp_call */
                 0,                         /* tp_str */
                 pyjava_type_getattro,                         /* tp_getattro */
                 pyjava_type_setattro,                         /* tp_setattro */
