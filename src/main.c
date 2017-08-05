@@ -25,7 +25,9 @@ int main(int argc,const char ** argv) {
             if (PyErr_Occurred()){
                 PyErr_Print();
                 printf("cpyjava selftest failed\n");
-                return -1;
+                if (argc > 1){
+                    return -1;
+                }
             }
             selftest++;
         }
