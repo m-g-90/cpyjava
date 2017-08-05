@@ -322,7 +322,7 @@ int pyjava_asJObject(JNIEnv * env, PyObject * obj,jclass klass,char ntype, jvalu
         switch (ntype){
         case 'Z':
             if (PyBool_Check(obj)){
-                ret->z = PyObject_IsTrue(obj);
+                ret->z = !!PyObject_IsTrue(obj);
                 if (!PyErr_Occurred()){
                     return 1;
                 } else {
