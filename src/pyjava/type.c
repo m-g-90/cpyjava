@@ -250,9 +250,9 @@ static PyObject * pyjava_type_richcompare(PyObject * a, PyObject *b, int op){
     if (op == Py_EQ || op == Py_NE){
         PYJAVA_START_JAVA(env);
         int result = pyjava_object_equal(env,((PyJavaObject*)a)->obj,((PyJavaObject*)b)->obj);
-        pyjava_exception_java2python(env);
+        int erroccured = pyjava_exception_java2python(env);
         PYJAVA_END_JAVA(env);
-        if (PyErr_Occurred()){
+        if (erroccured){
             return NULL;
         }
         if (result<0){
