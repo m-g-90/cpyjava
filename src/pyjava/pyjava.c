@@ -239,8 +239,15 @@ static PyObject * pyjava_setCallDecorator(PyObject * self, PyObject *_args){
     }
     PyJavaType * jtype = (PyJavaType*) type;
 
-    Py_IncRef(callback);
-    jtype->decoration.tp_call = callback;
+    if (jtype->decoration.tp_call){
+        Py_DecRef(jtype->decoration.tp_call);
+        jtype->decoration.tp_call = NULL;
+    }
+
+    if (callback != Py_None){
+        Py_IncRef(callback);
+        jtype->decoration.tp_call = callback;
+    }
 
     Py_RETURN_NONE;
 
@@ -263,8 +270,15 @@ static PyObject * pyjava_setGetterDecorator(PyObject * self, PyObject *_args){
     }
     PyJavaType * jtype = (PyJavaType*) type;
 
-    Py_IncRef(callback);
-    jtype->decoration.tp_getattro = callback;
+    if (jtype->decoration.tp_getattro){
+        Py_DecRef(jtype->decoration.tp_getattro);
+        jtype->decoration.tp_getattro = NULL;
+    }
+
+    if (callback != Py_None){
+        Py_IncRef(callback);
+        jtype->decoration.tp_getattro = callback;
+    }
 
     Py_RETURN_NONE;
 
@@ -287,8 +301,15 @@ static PyObject * pyjava_setSetterDecorator(PyObject * self, PyObject *_args){
     }
     PyJavaType * jtype = (PyJavaType*) type;
 
-    Py_IncRef(callback);
-    jtype->decoration.tp_setattro = callback;
+    if (jtype->decoration.tp_setattro){
+        Py_DecRef(jtype->decoration.tp_setattro);
+        jtype->decoration.tp_setattro = NULL;
+    }
+
+    if (callback != Py_None){
+        Py_IncRef(callback);
+        jtype->decoration.tp_setattro = callback;
+    }
 
     Py_RETURN_NONE;
 
