@@ -15,6 +15,7 @@ travis {
     UI_DIR = $$DESTDIR/.ui
     
     QMAKE_CFLAGS += -coverage 
+    QMAKE_LFLAGS += -coverage 
     
 }
 
