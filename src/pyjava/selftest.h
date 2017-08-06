@@ -147,6 +147,13 @@ static const char * pyjava_selftests[] = {
     "import cpyjava\n"
     "cpyjava.typeAsClassObject(cpyjava.getType(\"java/lang/String\")).getName()\n"
 
+    ,
+    "import cpyjava\n"
+    "map = cpyjava.packages.java.util.HashMap()\n"
+    "map['1'] = '2'\n"
+    "map.put('3','4')\n"
+    "assert map.get('1') == '2', 'map test failed (1)'\n"
+    "assert map['3'] == '4', 'map test failed (2)'\n"
 
 
     ,
