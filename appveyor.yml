@@ -6,7 +6,7 @@ install:
   - set PATH=%PATH%;%QTDIR%\bin
   
 before_build:
-  - qmake -tp vc "CONFIG+= appvoyor release " cpyjava.pro
+  - qmake -spec win32-msvc2015 -tp vc "CONFIG+= appvoyor release " cpyjava.pro
   
 build:
   project: cpyjava.vcxproj
