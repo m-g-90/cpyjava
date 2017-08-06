@@ -5,6 +5,9 @@ install:
   - set QTDIR=C:\Qt\5.6\msvc2015_64
   - set PATH=%PATH%;%QTDIR%\bin
   
+platform:
+  - x64
+  
 before_build:
   - qmake -spec win32-msvc2015 -tp vc "CONFIG+= appvoyor release " cpyjava.pro
   
