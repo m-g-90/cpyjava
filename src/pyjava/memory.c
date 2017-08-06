@@ -76,8 +76,8 @@ static void _pyjava_free(void * ptr){
     } else
 
 void * pyjava_malloc(size_t size){
-    pyjava_malloc_size(64)
     pyjava_malloc_size(32)
+    pyjava_malloc_size(64)
     pyjava_malloc_size(512)
     pyjava_malloc_size(1024)
     pyjava_malloc_size(4096)
