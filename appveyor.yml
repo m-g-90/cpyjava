@@ -8,6 +8,9 @@ install:
 platform:
   - x64
   
+configuration:
+  - Release
+  
 before_build:
   - qmake -spec win32-msvc2015 -tp vc "CONFIG+= appveyor release " cpyjava.pro
   
