@@ -154,6 +154,7 @@ static const char * pyjava_selftests[] = {
     "map.put('3','4')\n"
     "assert map.get('1') == '2', 'map test failed (1)'\n"
     "assert map['3'] == '4', 'map test failed (2)'\n"
+    "assert map.size() == 2, 'map test failed (3)'\n"
 
 
     ,
