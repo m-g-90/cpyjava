@@ -430,20 +430,20 @@ PYJAVA_DLLSPEC void JNICALL pyjava_registerObject(JNIEnv * env,jobject dont_care
 }
 
 static PyMethodDef cpyjavamethods[] = {
-    {"getType",  pyjava_getType, METH_VARARGS,""},
-    {"callMethod",  pyjava_callMethod, METH_VARARGS,""},
-    {"hasMethod",  pyjava_hasMethod, METH_VARARGS,""},
-    {"readField",  pyjava_readField, METH_VARARGS,""},
-    {"writeField",  pyjava_writeField, METH_VARARGS,""},
-    {"_with_java_enter",  pyjava_with_java_enter, METH_NOARGS,""},
-    {"_with_java_exit",  pyjava_with_java_exit, METH_NOARGS,""},
-    {"setCallDecorator",pyjava_setCallDecorator,METH_VARARGS,""},
-    {"setGetterDecorator",pyjava_setGetterDecorator,METH_VARARGS,""},
-    {"setSetterDecorator",pyjava_setSetterDecorator,METH_VARARGS,""},
-    {"selftest",  pyjava_selftest, METH_NOARGS,""},
-    {"memstat",pyjava_mem_stat,METH_VARARGS,""},
-    {"symbols",pyjava_symbols,METH_VARARGS,""},
-    {"typeAsClassObject",pyjava_typeAsClassObject,METH_VARARGS,""},
+    {"getType",  pyjava_getType, METH_VARARGS,"getType(className): get a type object for the named java class. e.g. getType('java/lang/String')"},
+    {"callMethod",  pyjava_callMethod, METH_VARARGS,"callMethod(obj,methodName,*args): call a java member method"},
+    {"hasMethod",  pyjava_hasMethod, METH_VARARGS,"hasMethod(obj,methodName): returns true if a java member method with that name exists"},
+    {"readField",  pyjava_readField, METH_VARARGS,"readField(obj,fieldName): get the value of a java field."},
+    {"writeField",  pyjava_writeField, METH_VARARGS,"writeField(obj,fieldName,value): set the value of a java field."},
+    {"_with_java_enter",  pyjava_with_java_enter, METH_NOARGS,"internal function"},
+    {"_with_java_exit",  pyjava_with_java_exit, METH_NOARGS,"internal function"},
+    {"setCallDecorator",pyjava_setCallDecorator,METH_VARARGS,"setCallDecorator(javaType,callback): adds a decorator callback that will be called instead. callback should expect the arguments (self,decoself,*args,**kwargs). decoself is a special object that points to the same java object as the decorated self object, but decorators are disabled if decoself is used."},
+    {"setGetterDecorator",pyjava_setGetterDecorator,METH_VARARGS,"setGetterDecorator(javaType,callback): adds a decorator callback that will be called instead. callback should expect the arguments (self,decoself,key). decoself is a special object that points to the same java object as the decorated self object, but decorators are disabled if decoself is used."},
+    {"setSetterDecorator",pyjava_setSetterDecorator,METH_VARARGS,"setSetterDecorator(javaType,callback): adds a decorator callback that will be called instead. callback should expect the arguments (self,decoself,key,value) AND (self,decoself,key). The later one is nedded to support 'del'. decoself is a special object that points to the same java object as the decorated self object, but decorators are disabled if decoself is used."},
+    {"selftest",  pyjava_selftest, METH_NOARGS,"selftest(): runs the builtin selftest code snippets"},
+    {"memstat",pyjava_mem_stat,METH_VARARGS,"memstat(): returns a string with information about the memory consumption of cpyjava."},
+    {"symbols",pyjava_symbols,METH_VARARGS,"symbols(jobject): returns a tuple of symbols of the given object. Behaves like dir()."},
+    {"typeAsClassObject",pyjava_typeAsClassObject,METH_VARARGS,"typeAsClassObject(javaType): returns a wrapped java.lang.Class object from a java type (e.g. optained by cpyjava.getType('java/lang/String'))"},
     {NULL, NULL, 0, NULL}
 };
 
