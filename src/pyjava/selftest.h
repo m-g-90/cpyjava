@@ -155,7 +155,28 @@ static const char * pyjava_selftests[] = {
     "assert map.get('1') == '2', 'map test failed (1)'\n"
     "assert map['3'] == '4', 'map test failed (2)'\n"
     "assert map.size() == len(map), 'map test failed (3)'\n"
+    "del map['3']\n"
+    "assert map.size() == 1, 'map test failed (4)'\n"
+    "count = 0\n"
+    "for x in map:\n"
+    "\tcount += 1\n"
+    "assert count == 1, 'map test failed (5)'"
 
+    ,
+    "import cpyjava\n"
+    "list = cpyjava.packages.java.util.LinkedList()\n"
+    "list.add('2')\n"
+    "list.add('3')\n"
+    "list.add('4')\n"
+    "assert list.get(1) == '3', 'list test failed (1)'\n"
+    "assert list[2] == '4', 'list test failed (2)'\n"
+    "assert list.size() == len(list), 'list test failed (3)'\n"
+    "del list[0]\n"
+    "assert list.size() == 2, 'list test failed (4)'\n"
+    "count = 0\n"
+    "for x in list:\n"
+    "\tcount += 1\n"
+    "assert count == 2, 'list test failed (5)'"
 
     ,
     NULL
