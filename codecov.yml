@@ -1,3 +1,11 @@
 codecov:
   ci:
     - "!icicleci.com"
+    
+coverage:
+  status:
+    project:
+      default:
+        threshold: 0%
+        branches: master
+        if_ci_failed: error
