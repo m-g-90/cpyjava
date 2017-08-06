@@ -25,8 +25,13 @@ SOURCES += $$PWD/src/main.c
 
 win32 {
 
-    JDK_PATH = "C:/Program Files/Java/jdk1.8.0_111"
-    PYTHON_PATH = "C:/Program Files/Python36"
+    appveyor {
+        JDK_PATH = "C:/Program Files/Java/jdk1.8.0"
+        PYTHON_PATH = "C:/Python36-x64"
+    } else {
+        JDK_PATH = "C:/Program Files/Java/jdk1.8.0_111"
+        PYTHON_PATH = "C:/Program Files/Python36"
+    }
 
     INCLUDEPATH += "$${JDK_PATH}/include"
     INCLUDEPATH += "$${JDK_PATH}/include/win32"
