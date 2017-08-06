@@ -33,6 +33,7 @@ script:
   - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make ; fi
   - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then export LD_LIBRARY_PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server:/usr/lib/jvm/java-8-openjdk-amd64/lib/:$LD_LIBRARY_PATH && ./cpyjava exit ; fi
   - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then ./get_code_cov.sh ; fi
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then ls -la ; fi
   
 after_success: 
   - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then bash <(curl -s https://codecov.io/bash) ; fi
