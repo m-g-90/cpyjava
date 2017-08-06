@@ -2,12 +2,14 @@
 
 #include "pyjava/pyjava.h"
 #include "pyjava/selftest.h"
+#include "pyjava/memory.h"
 #include <stdio.h>
 
 int main(int argc,const char ** argv) {
     (void)argc;
     (void)argv;
 
+    pyjava_freestr(pyjava_dedupstaticstr("fdsasas"));
 
     PyImport_AppendInittab("cpyjava", &PyInit_cpyjava);
     Py_Initialize();
