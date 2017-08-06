@@ -355,6 +355,37 @@ static PyObject * pyjava_symbols(PyObject * module, PyObject *_args){
 
 }
 
+static PyObject * pyjava_typeAsClassObject(PyObject * module, PyObject *_args){
+
+    (void)module;
+
+    PyObject * self = NULL;
+    if (!PyArg_ParseTuple(_args, "O", &self)){
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_Exception,"");
+        return NULL;
+    }
+
+    if (!PyType_CheckExact(self) || !pyjava_isJavaClass((PyTypeObject*)self)){
+        PyErr_SetString(PyExc_Exception,"Not a java type.");
+    }
+
+    PyObject * ret = NULL;
+
+    PYJAVA_START_JAVA(env);
+    if (env){
+        ret = pyjava_asWrappedObject(env,self);
+    }
+    PYJAVA_END_JAVA(env);
+
+    if (!ret && !PyErr_Occurred()){
+        PyErr_SetString(PyExc_Exception,"conversion failed");
+    }
+
+    return ret;
+
+}
+
 
 
 static PyObject * registeredObjects = NULL;
@@ -412,6 +443,7 @@ static PyMethodDef cpyjavamethods[] = {
     {"selftest",  pyjava_selftest, METH_NOARGS,""},
     {"memstat",pyjava_mem_stat,METH_VARARGS,""},
     {"symbols",pyjava_symbols,METH_VARARGS,""},
+    {"typeAsClassObject",pyjava_typeAsClassObject,METH_VARARGS,""},
     {NULL, NULL, 0, NULL}
 };
 

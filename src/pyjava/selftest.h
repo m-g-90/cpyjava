@@ -119,15 +119,35 @@ static const char * pyjava_selftests[] = {
     "\traise Exception('unexpected list/array behaviour. ['+str(len(list.toArray()))+','+str(list.size())+']')\n"
 
     ,
+    // once conversion of Integer is implemeneted, this will fail
     "import cpyjava\n"
     "i1 = cpyjava.packages.java.lang.Integer(123)\n"
     "i2 = cpyjava.packages.java.lang.Integer(123)\n"
     "if i1 is i2:\n"
     "\traise Exception('identity comparison failed')\n"
     "if i1 != i2:\n"
-    "\traise Exception('rich comparison (equals) failed')\n"
+    "\traise Exception('rich comparison (equals) failed (1)')\n"
     "if not (i1 == i2):\n"
-    "\traise Exception('rich comparison (equals) failed')\n"
+    "\traise Exception('rich comparison (equals) failed (2)')\n"
+    "if not (i1 == i1):\n"
+    "\traise Exception('rich comparison (equals) failed (3)')\n"
+    "if i1 == 1:\n"
+    "\traise Exception('rich comparison (equals) failed (4)')\n"
+
+    ,
+    "import cpyjava\n"
+    "hash(cpyjava.packages.java.lang.System.out)\n"
+
+    ,
+    "import cpyjava\n"
+    "dir(cpyjava.packages.java.lang.System.out)\n"
+    "cpyjava.packages.java.lang.System.out.__dict__\n"
+
+    ,
+    "import cpyjava\n"
+    "cpyjava.typeAsClassObject(cpyjava.getType(\"java/lang/String\")).getName()\n"
+
+
 
     ,
     NULL

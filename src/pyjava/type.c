@@ -387,10 +387,6 @@ int pyjava_isJavaClass(PyTypeObject * type){
     }
 }
 
-jclass _pyjava_getClass(JNIEnv * env, PyTypeObject * type){
-    return PYJAVA_ENVCALL(env,NewLocalRef,((PyJavaType*)type)->klass);
-}
-
 PyObject * pyjava_callFunction(JNIEnv * env, PyObject * _obj,const char * name,PyObject * tuple){
     PyJavaType * type;
     PyJavaObject * obj;
