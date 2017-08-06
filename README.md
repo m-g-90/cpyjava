@@ -1,4 +1,4 @@
-![](https://travis-ci.org/m-g-90/cpyjava.svg?branch=master) ![](https://scan.coverity.com/projects/13312/badge.svg)
+![](https://travis-ci.org/m-g-90/cpyjava.svg?branch=master) ![](https://scan.coverity.com/projects/13312/badge.svg) [![codecov](https://codecov.io/gh/m-g-90/cpyjava/branch/master/graph/badge.svg)](https://codecov.io/gh/m-g-90/cpyjava)
 
 
 python extension to use java objects.
