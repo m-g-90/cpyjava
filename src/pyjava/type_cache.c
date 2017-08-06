@@ -65,6 +65,7 @@ void pyjava_typecache_register(JNIEnv * env, struct PyJavaType * type){
 }
 void pyjava_typecache_gc(){
 
+    /*
     for (size_t i = 0;i<PYJAVA_CFG_TYPE_CACHE_BUCKETS;i++){
         PyJavaType * prev = NULL;
         PyJavaType * cur = typemap[i];
@@ -84,11 +85,13 @@ void pyjava_typecache_gc(){
             }
         }
     }
+    */
 
 }
 
 void pyjava_typecache_reset(){
 
+    /*
     for (size_t i = 0;i<PYJAVA_CFG_TYPE_CACHE_BUCKETS;i++){
         PyJavaType * cur = typemap[i];
         while (cur){
@@ -98,6 +101,7 @@ void pyjava_typecache_reset(){
         }
         typemap[i] = NULL;
     }
+    */
 
 }
 
