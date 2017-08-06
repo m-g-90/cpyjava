@@ -8,6 +8,8 @@ env:
    - secure: "sf5fN/+VX/GmZYHGb9WhQ/O5XaU/9N0Wk9tdZUcCkzqKyq7Ym6R+tg82RCeCjU/zw7ORXfc3SDfC9R3Jpz2fcpCTSUYyB2jBoc0gT5C2r+nIdrFOEY9cLBVrH7Gk9MrB3hcuFZNC4VrZPVxrLrdYHPZwbya85GebrNyYgV2YfLuRre6kj6cDOnJv2CRmXQuhspeCbYJLyCXdHgnlYojKMZjPN3RHnwLK/haRUQJUR6eVhg65Sphe84UaiVyppthfJZzCt1e8nVLQaLy1pxRq8dZtPnT1f3+sdkHw385bvO8uRJarU2FudkfmTFrGveOVF++F7tsHB8s53FBr1z5B4dQeATEul1j4lMvk1Dz5JpYLJcVWVuZORjfeqhRWqswgAzzMuDgn5w3ECM+eCBhxmtw3t4Y+zSI8PEqy0LkPIxYdBUGW+v3/UpITsPV2dRfZs9tYOpdaVQp+QNBa8A60jKQce4VVMY2/A3Of6br1jDH1l435slTpx3Htc2jt9ssY9kGg90iN8/XCl6W/JrVa16/mgTZEiUZYUOWFiaQazLifdQWpjuYLBx8nrwtqV8MW0xgMf/pJvHasi7W8LWbitCrolKtJBE1DNzoPGquxgkSj3uytem3F9qJo/CilC6XMbuxMqPdGktlaSpArL4yTKVSaSYXoms6OxARqNHb+4WM="
 
 before_install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
   - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
   - sudo apt-get update -qq
   - sudo add-apt-repository --yes ppa:fkrull/deadsnakes
@@ -17,10 +19,12 @@ before_install:
   - sudo apt-get update -qq
   
 install: 
-  - sudo apt-get install -qq g++-5
+  - sudo apt-get install -qq g++-5  
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 90
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
   - sudo apt-get install -qq qt5-qmake qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev
   - sudo apt-get install -qq python3.5 python3.5-dev
+
 
 language:
   - c
