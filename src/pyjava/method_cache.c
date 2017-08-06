@@ -26,6 +26,30 @@
 extern "C"{
 #endif
 
+#define PYJAVA_METHOD_CACHE_CLASS(CLASSNAME,SHORTNAME) \
+    static jclass _pyjava_##SHORTNAME##_class = NULL; \
+    jclass pyjava_##SHORTNAME##_class(JNIEnv * env){ \
+        if (!_pyjava_##SHORTNAME##_class){ \
+            jclass tmp = PYJAVA_ENVCALL(env,FindClass,CLASSNAME); \
+            _pyjava_##SHORTNAME##_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp); \
+            PYJAVA_ENVCALL(env,DeleteLocalRef,tmp); \
+        } \
+        if (!_pyjava_##SHORTNAME##_class){ \
+            /*TODO: log error */ \
+            return 0; \
+        } \
+        return _pyjava_##SHORTNAME##_class; \
+    }
+
+PYJAVA_METHOD_CACHE_CLASS("java/util/Iterator",iterator)
+PYJAVA_METHOD_CACHE_CLASS("java/lang/Iterable",iterable)
+PYJAVA_METHOD_CACHE_CLASS("java/lang/Object",object)
+PYJAVA_METHOD_CACHE_CLASS("java/util/Set",set)
+PYJAVA_METHOD_CACHE_CLASS("java/util/List",list)
+PYJAVA_METHOD_CACHE_CLASS("java/util/Map",map)
+PYJAVA_METHOD_CACHE_CLASS("java/lang/Class",class)
+PYJAVA_METHOD_CACHE_CLASS("java/lang/Comparable",compareable)
+
 static jclass _pyjava_identityHash_system = NULL;
 static jmethodID _pyjava_identityHash_system_identityHash = NULL;
 jint pyjava_method_cache_identityHash(JNIEnv * env,jobject obj){
@@ -58,29 +82,20 @@ jint pyjava_method_cache_identityHash(JNIEnv * env,jobject obj){
 
 }
 
-static jclass _pyjava_is_class_class = NULL;
 int pyjava_is_class(JNIEnv * env,jobject obj){
-    if (!_pyjava_is_class_class){
-        jclass tmp = PYJAVA_ENVCALL(env,FindClass,"java/lang/Class");
-        _pyjava_is_class_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp);
-        PYJAVA_ENVCALL(env,DeleteLocalRef,tmp);
-    }
-    if (!_pyjava_is_class_class){
+    if (!pyjava_class_class(env)){
         return 0;
     }
-    return (int) PYJAVA_ENVCALL(env,IsInstanceOf,obj,_pyjava_is_class_class);
+    return (int) PYJAVA_ENVCALL(env,IsInstanceOf,obj,_pyjava_class_class);
 }
 
 static jmethodID _pyjava_is_array_class = NULL;
 int pyjava_is_arrayclass(JNIEnv * env,jclass obj){
-    if (!_pyjava_is_class_class){
-        pyjava_is_class(env,obj);
-    }
-    if (!_pyjava_is_class_class){
+    if (!pyjava_class_class(env)){
         return 0;
     }
     if (!_pyjava_is_array_class){
-        _pyjava_is_array_class = PYJAVA_ENVCALL(env,GetMethodID,_pyjava_is_class_class,"isArray","()Z");
+        _pyjava_is_array_class = PYJAVA_ENVCALL(env,GetMethodID,_pyjava_class_class,"isArray","()Z");
     }
     if (!_pyjava_is_array_class){
         return 0;
@@ -98,7 +113,7 @@ char pyjava_get_array_sub_NType(JNIEnv *env, jclass klass){
         return (char)0;
     }
     if (!_pyjava_array_sub_class){
-        _pyjava_array_sub_class = PYJAVA_ENVCALL(env,GetMethodID,_pyjava_is_class_class,"getComponentType","()Ljava/lang/Class;");
+        _pyjava_array_sub_class = PYJAVA_ENVCALL(env,GetMethodID,_pyjava_class_class,"getComponentType","()Ljava/lang/Class;");
         PYJAVA_ENVCALL(env,ExceptionDescribe);
     }
     if (!_pyjava_array_sub_class){
@@ -112,30 +127,6 @@ char pyjava_get_array_sub_NType(JNIEnv *env, jclass klass){
 
 
 
-
-#define PYJAVA_METHOD_CACHE_CLASS(CLASSNAME,SHORTNAME) \
-    static jclass _pyjava_##SHORTNAME##_class = NULL; \
-    jclass pyjava_##SHORTNAME##_class(JNIEnv * env){ \
-        if (!_pyjava_##SHORTNAME##_class){ \
-            jclass tmp = PYJAVA_ENVCALL(env,FindClass,CLASSNAME); \
-            _pyjava_##SHORTNAME##_class = PYJAVA_ENVCALL(env,NewGlobalRef,tmp); \
-            PYJAVA_ENVCALL(env,DeleteLocalRef,tmp); \
-        } \
-        if (!_pyjava_##SHORTNAME##_class){ \
-            /*TODO: log error */ \
-            return 0; \
-        } \
-        return _pyjava_##SHORTNAME##_class; \
-    }
-
-PYJAVA_METHOD_CACHE_CLASS("java/util/Iterator",iterator)
-PYJAVA_METHOD_CACHE_CLASS("java/lang/Iterable",iterable)
-PYJAVA_METHOD_CACHE_CLASS("java/lang/Object",object)
-PYJAVA_METHOD_CACHE_CLASS("java/util/Set",set)
-PYJAVA_METHOD_CACHE_CLASS("java/util/List",list)
-PYJAVA_METHOD_CACHE_CLASS("java/util/Map",map)
-PYJAVA_METHOD_CACHE_CLASS("java/lang/Class",class)
-PYJAVA_METHOD_CACHE_CLASS("java/lang/Comparable",compareable)
 
 
 static jmethodID _pyjava_object_equal = NULL;
@@ -161,7 +152,7 @@ void pyjava_method_cache_reset(JNIEnv *env){
     }
     _pyjava_identityHash_system = NULL;
     _pyjava_identityHash_system_identityHash = NULL;
-    _pyjava_is_class_class = NULL;
+    _pyjava_class_class = NULL;
 }
 
 #ifdef __cplusplus

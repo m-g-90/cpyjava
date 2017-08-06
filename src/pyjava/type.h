@@ -86,6 +86,7 @@ typedef struct PyJavaType {
     struct PyJavaConverter converter;
     struct PyJavaDecoration decoration;
     ternaryfunc tp_call_impl; //don't overwrite tp_call in type_extensions. overwrite this to ensure that decoration works.
+    PyObject * (*tp_richcompare_impl)(PyObject * , PyObject *, int );
 } PyJavaType;
 
 int pyjava_isJavaClass(PyTypeObject * type);

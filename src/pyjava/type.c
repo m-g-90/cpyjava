@@ -273,7 +273,9 @@ static PyObject * pyjava_type_richcompare(PyObject * a, PyObject *b, int op){
         }
     }
 
-    //todo use Compareable interface if present
+    if (((PyJavaType*)a->ob_type)->tp_richcompare_impl){
+        return ((PyJavaType*)a->ob_type)->tp_richcompare_impl(a,b,op);
+    }
 
     Py_RETURN_NOTIMPLEMENTED;
 }

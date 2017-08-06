@@ -225,6 +225,9 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
         type->pto.tp_iter = &java_lang_Iterator_tp_iter;
         type->pto.tp_iternext = &java_lang_Iterator_next;
     }
+    if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_compareable_class(env))){
+        //todo: richcompare for LT/GT
+    }
 
 
     if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_map_class(env))){
@@ -232,6 +235,8 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
         type->pto.tp_iter = &java_util_Map_tp_iter;
     } else if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_list_class(env))) { // check if this is a list
         type->pto.tp_as_sequence = &java_util_List;
+    } else if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_set_class(env))) {
+        //todo support set
     } else if (pyjava_is_arrayclass(env,type->klass)){
         char ntype = pyjava_get_array_sub_NType(env,type->klass);
         switch (ntype){
