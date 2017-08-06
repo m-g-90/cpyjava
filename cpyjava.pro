@@ -13,6 +13,9 @@ travis {
     MOC_DIR = $$DESTDIR/.moc
     RCC_DIR = $$DESTDIR/.qrc
     UI_DIR = $$DESTDIR/.ui
+    
+    QMAKE_CFLAGS += -coverage 
+    
 }
 
 TEMPLATE = app
