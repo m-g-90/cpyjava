@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2410def413924018a31c088d65ff5e5e)](https://www.codacy.com/app/m-g-90/cpyjava?utm_source=github.com&utm_medium=referral&utm_content=m-g-90/cpyjava&utm_campaign=badger)
 ![](https://travis-ci.org/m-g-90/cpyjava.svg?branch=master) [![Build status](https://ci.appveyor.com/api/projects/status/ce7afnnx892q5rl0/branch/master?svg=true)](https://ci.appveyor.com/project/m-g-90/cpyjava/branch/master) ![](https://scan.coverity.com/projects/13312/badge.svg) [![codecov](https://codecov.io/gh/m-g-90/cpyjava/branch/master/graph/badge.svg)](https://codecov.io/gh/m-g-90/cpyjava)
 
 
