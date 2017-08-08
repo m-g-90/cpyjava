@@ -1,8 +1,8 @@
 ![](https://img.shields.io/github/tag/m-g-90/cpyjava.svg) ![](https://img.shields.io/github/license/m-g-90/cpyjava.svg)
 
-![](https://travis-ci.org/m-g-90/cpyjava.svg?branch=master) [![Build status](https://ci.appveyor.com/api/projects/status/ce7afnnx892q5rl0/branch/master?svg=true)](https://ci.appveyor.com/project/m-g-90/cpyjava/branch/master) ![](https://scan.coverity.com/projects/13312/badge.svg)
+![](https://travis-ci.org/m-g-90/cpyjava.svg?branch=master) [![Build status](https://ci.appveyor.com/api/projects/status/ce7afnnx892q5rl0/branch/master?svg=true)](https://ci.appveyor.com/project/m-g-90/cpyjava/branch/master) 
 
-[![codecov](https://codecov.io/gh/m-g-90/cpyjava/branch/master/graph/badge.svg)](https://codecov.io/gh/m-g-90/cpyjava)  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2410def413924018a31c088d65ff5e5e)](https://www.codacy.com/app/m-g-90/cpyjava?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=m-g-90/cpyjava&amp;utm_campaign=Badge_Grade)
+[![codecov](https://codecov.io/gh/m-g-90/cpyjava/branch/master/graph/badge.svg)](https://codecov.io/gh/m-g-90/cpyjava)  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2410def413924018a31c088d65ff5e5e)](https://www.codacy.com/app/m-g-90/cpyjava?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=m-g-90/cpyjava&amp;utm_campaign=Badge_Grade) ![](https://scan.coverity.com/projects/13312/badge.svg)
 
 
 python extension to use java objects.
