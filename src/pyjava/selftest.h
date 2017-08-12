@@ -83,7 +83,7 @@ static const char * pyjava_selftests[] = {
     "except:\n"
     "\traise Exception('getter decorator was not used')\n"
     "if test != 29384:\n"
-    "   raise Exception('getter decorator return value lost')"
+    "   raise Exception('getter decorator return value lost')\n"
     "cpyjava.setGetterDecorator(type(jobject),None)\n"
 
 
@@ -108,7 +108,7 @@ static const char * pyjava_selftests[] = {
     "except:\n"
     "\traise Exception('setter decorator was not used')\n"
     "if test != 34534:\n"
-    "   raise Exception('setter decorator return value lost')"
+    "   raise Exception('setter decorator return value lost')\n"
     "cpyjava.setSetterDecorator(type(jobject),None)\n"
 
     ,
