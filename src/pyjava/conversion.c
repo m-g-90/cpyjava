@@ -488,11 +488,51 @@ void pyjava_conversion_forceInit(JNIEnv * env){
 
 }
 
-
+static jmethodID _pyjava_throwable_tostring = NULL;
 int pyjava_exception_java2python(JNIEnv * env){
     if (PYJAVA_ENVCALL(env,ExceptionCheck)){
+        jthrowable ex = PYJAVA_ENVCALL(env,ExceptionOccurred);
         PYJAVA_ENVCALL(env,ExceptionClear);
-        PyErr_SetString(PyExc_NotImplementedError,"A java exception has occured, but translation is not yet supported");
+        if (ex){
+            if (!_pyjava_throwable_tostring){
+                jclass throwclass = pyjava_throwable_class(env);
+                if (throwclass){
+                    _pyjava_throwable_tostring = PYJAVA_ENVCALL(env,GetMethodID,throwclass,"toString","()Ljava/lang/String;");
+                }
+            }
+            if (_pyjava_throwable_tostring){
+                jobject str = PYJAVA_ENVCALL(env,CallObjectMethod,ex,_pyjava_throwable_tostring);
+                if (pyjava_exception_java2python(env)){
+                    PyErr_Clear();
+                } else {
+                    const char * cstr = PYJAVA_ENVCALL(env,GetStringUTFChars,str,NULL);
+                    if (cstr){
+                        char * strcopy = pyjava_malloc(strlen(cstr)+sizeof(char));
+                        strcpy(strcopy,cstr);
+                        {
+                            char * cur = strcopy;
+                            while (*cur){
+                                if (*cur == '\n'){
+                                    *cur = ' ';
+                                }
+                                cur++;
+                            }
+                        }
+                        PyErr_SetString(PyExc_Exception,(const char *)strcopy);
+                        pyjava_free(strcopy);
+                        PYJAVA_ENVCALL(env,ReleaseStringUTFChars,str,cstr);
+                        PYJAVA_ENVCALL(env,DeleteLocalRef,str);
+                        PYJAVA_ENVCALL(env,DeleteLocalRef,ex);
+                        return 1;
+                    }
+                }
+            }
+        }
+        PYJAVA_ENVCALL(env,Throw,ex);
+        PYJAVA_ENVCALL(env,DeleteLocalRef,ex);
+        PYJAVA_ENVCALL(env,ExceptionDescribe);
+        PYJAVA_ENVCALL(env,ExceptionClear);
+        PyErr_SetString(PyExc_Exception,"A java exception has occured, but translation failed");
         return 1;
     } else {
         return 0;

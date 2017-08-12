@@ -49,6 +49,7 @@ PYJAVA_METHOD_CACHE_CLASS("java/util/List",list)
 PYJAVA_METHOD_CACHE_CLASS("java/util/Map",map)
 PYJAVA_METHOD_CACHE_CLASS("java/lang/Class",class)
 PYJAVA_METHOD_CACHE_CLASS("java/lang/Comparable",compareable)
+PYJAVA_METHOD_CACHE_CLASS("java/lang/Throwable",throwable)
 
 static jclass _pyjava_identityHash_system = NULL;
 static jmethodID _pyjava_identityHash_system_identityHash = NULL;
