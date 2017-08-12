@@ -54,7 +54,7 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
         if (!createJavaVM){
             createJavaVM = &JNI_CreateJavaVM;
         }
-#endif
+#else
 #ifdef PYJAVA_JVM_DLOPEN
         if (!createJavaVM){
             void * handle = dlopen("jvm",RTLD_LOCAL);
@@ -68,7 +68,7 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
             }
         }
 #endif
-
+#endif
         if (createJavaVM){
             JNIEnv *env;
             JavaVM *vm;
@@ -141,12 +141,13 @@ PYJAVA_DLLSPEC JavaVM * pyjava_getJVM(){
         if (!getCreatedJavaVMs){
             getCreatedJavaVMs = &JNI_GetCreatedJavaVMs;
         }
-#endif
+#else
 #ifdef PYJAVA_JVM_DLOPEN
         if (!getCreatedJavaVMs){
             typedef jint JNICALL (*getCreatedJavaVMs_t)(JavaVM **, jsize, jsize *);
             getCreatedJavaVMs = (getCreatedJavaVMs_t) dlsym(NULL,"JNI_GetCreatedJavaVMs");
         }
+#endif
 #endif
 
         if (getCreatedJavaVMs){
