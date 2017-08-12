@@ -3,11 +3,13 @@
 #include "pyjava/pyjava.h"
 #include "pyjava/selftest.h"
 #include "pyjava/memory.h"
+#include "pyjava/jvm.h"
 #include <stdio.h>
 
 int main(int argc,const char ** argv) {
     (void)argc;
     (void)argv;
+    pyjava_checkJNI(1);
 
     pyjava_freestr(pyjava_dedupstaticstr("fdsasas"));
 
