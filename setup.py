@@ -1,11 +1,94 @@
 from distutils.core import setup, Extension
+from distutils.spawn import find_executable
+from distutils.util import get_platform
 import os
+
+
+try:
+    import pip
+
+    deps = ""
+
+    for dep in deps.split(' '):
+        try:
+            if len(dep)>0:
+                pip.main(['install', '--user', dep])
+        except:
+            pass
+except:
+    pass
 
 sourcedir = os.path.dirname(os.path.realpath(__file__))
 
 
+def findJavaFolders():
+    java_folders = []
+    try:
+        tmp = os.environ['JAVA_HOME']
+        if tmp is not None:
+            if isinstance(tmp, str) and len(tmp) and os.path.isdir(tmp):
+                java_folders.append(tmp)
+    except:
+        pass
+
+    executables = ['java','java.exe']
+    for executable in executables:
+        try:
+            path = find_executable(executable)
+            if path is not None:
+                java_folders.append(os.path.dirname(os.path.abspath(path)))
+                java_folders.append(os.path.dirname(java_folders[-1]))
+        except:
+            pass
+
+        try:
+            path = find_executable(executable)
+            if path is not None:
+                import subprocess
+                output = subprocess.run([path,'-server','-verbose:class'],stderr=subprocess.STDOUT,stdout=subprocess.PIPE,check=False).stdout
+                import re
+                path = re.match(r".*\[Loaded java\.lang\.Object from (?P<path>.*?)rt\.jar\].*",str(output)).group("path")
+                if path is not None:
+                    java_folders.append(os.path.dirname(os.path.abspath(path)))
+                    java_folders.append(os.path.dirname(java_folders[-1]))
+        except Exception as ex:
+            print(repr(ex))
+
+    return java_folders
+
+
+def findJavaLibrary():
+    if get_platform().startswith("win"):
+        extension = '.dll'
+    elif get_platform().startswith("linux"):
+        extension = '.so'
+    else:
+        raise Exception('JVM search failed: unknown operating system.')
+
+    subpaths = [
+        os.path.join('jre','bin','server','jvm'),
+        os.path.join('jre', 'bin', 'jvm'),
+        os.path.join('jre', 'lib', 'jvm'),
+        os.path.join('bin', 'server', 'jvm'),
+        os.path.join('bin', 'jvm'),
+        os.path.join('lib', 'jvm')
+    ]
+
+    java_folders = findJavaFolders()
+    for prefix in java_folders:
+        for mid in subpaths:
+            if os.path.isfile(os.path.join(prefix,mid+extension)):
+                return os.path.join(prefix,mid+extension)
+
+    raise Exception('JVM search failed: no jvm'+extension+' found. (Searchpath: '+(';'.join(java_folders))+')')
+
+try:
+    jvmfile = "\"\""+findJavaLibrary().replace("\\",'\\\\')+"\"\""
+except:
+    jvmfile = "\"\""
+
 cpyjava_module = Extension('cpyjava',
-                    define_macros = [('PYJAVA_SETUP_PY', '1'),('PYJAVA_EXPORT','1')],
+                    define_macros = [('PYJAVA_SETUP_PY', '1',),('PYJAVA_EXPORT','1'),('PYJAVA_JVM_LOCATIONHINT',jvmfile),('PYJAVA_JVM_LOADLIBRARY','1')],
                     include_dirs = [os.path.join(sourcedir,'src')],
                     libraries = [],
                     library_dirs = [],

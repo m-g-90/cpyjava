@@ -28,7 +28,10 @@
 #endif
 
 #ifdef PYJAVA_JVM_DLOPEN
-        #include <dlfcn.h>
+    #include <dlfcn.h>
+#endif
+#ifdef PYJAVA_JVM_LOADLIBRARY
+    #include <Windows.h>
 #endif
 
 #ifdef __cplusplus
@@ -36,7 +39,7 @@ extern "C"{
 #endif
 
 static JavaVM * pyjava_jvmptr = NULL;
-typedef jint (*createJavaVM_t)(JavaVM **, void **, void *) ;
+typedef jint (*createJavaVM_t)(JavaVM **, JNIEnv **, void *) ;
 
 
 static int pyjava_jnicheck = 0;
@@ -58,6 +61,13 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
 #ifdef PYJAVA_JVM_DLOPEN
         if (!createJavaVM){
             void * handle = dlopen("jvm",RTLD_LOCAL);
+#ifdef PYJAVA_JVM_LOCATIONHINT
+            if (!handle){
+                if (strlen(PYJAVA_JVM_LOCATIONHINT)>0){
+                    handle = dlopen(PYJAVA_JVM_LOCATIONHINT,RTLD_LOCAL);
+                }
+            }
+#endif
             if (handle){
                 createJavaVM = (createJavaVM_t) dlsym(handle,"JNI_CreateJavaVM");
             } else {
@@ -65,6 +75,23 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
             }
             if (!createJavaVM){
                 createJavaVM = (createJavaVM_t) dlsym(NULL,"JNI_CreateJavaVM");
+            }
+        }
+#endif
+#ifdef PYJAVA_JVM_LOADLIBRARY
+        if (!createJavaVM){
+            HMODULE handle = LoadLibraryA("jvm");
+#ifdef PYJAVA_JVM_LOCATIONHINT
+            if (!handle){
+                if (strlen(PYJAVA_JVM_LOCATIONHINT)>0){
+                    handle = LoadLibraryA(PYJAVA_JVM_LOCATIONHINT);
+                }
+            }
+#endif
+            if (handle){
+                createJavaVM = (createJavaVM_t) GetProcAddress(handle,"JNI_CreateJavaVM");
+            } else {
+                printf("Failed to open jvm library. Error Code %i",GetLastError());
             }
         }
 #endif

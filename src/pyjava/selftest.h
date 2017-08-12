@@ -63,6 +63,7 @@ static const char * pyjava_selftests[] = {
     "\tjobject('test')\n"
     "except:\n"
     "\traise Exception('call decorator was not used')\n"
+    "cpyjava.setCallDecorator(type(jobject),None)\n"
 
     ,
     "import cpyjava\n"
@@ -83,6 +84,8 @@ static const char * pyjava_selftests[] = {
     "\traise Exception('getter decorator was not used')\n"
     "if test != 29384:\n"
     "   raise Exception('getter decorator return value lost')"
+    "cpyjava.setGetterDecorator(type(jobject),None)\n"
+
 
     ,
     "import cpyjava\n"
@@ -106,6 +109,7 @@ static const char * pyjava_selftests[] = {
     "\traise Exception('setter decorator was not used')\n"
     "if test != 34534:\n"
     "   raise Exception('setter decorator return value lost')"
+    "cpyjava.setSetterDecorator(type(jobject),None)\n"
 
     ,
     "import cpyjava\n"
