@@ -100,11 +100,16 @@ int pyjava_is_arrayclass(JNIEnv * env,jclass obj){
     if (!_pyjava_is_array_class){
         return 0;
     }
-    if (PYJAVA_ENVCALL(env,CallBooleanMethod,obj, _pyjava_is_array_class)) {
-        return 1;
-    } else {
-        return 0;
+
+    jboolean isarray = PYJAVA_ENVCALL(env,CallBooleanMethod,obj, _pyjava_is_array_class);
+
+    if (pyjava_exception_java2python(env)){
+        PyErr_Clear();
+        isarray = 0;
     }
+
+    return isarray?1:0;
+
 }
 
 static jmethodID _pyjava_array_sub_class = NULL;
@@ -120,6 +125,12 @@ char pyjava_get_array_sub_NType(JNIEnv *env, jclass klass){
         return (char)0;
     }
     jclass subklass = PYJAVA_ENVCALL(env,CallObjectMethod,klass,_pyjava_array_sub_class);
+
+    if (pyjava_exception_java2python(env)){
+        PyErr_Clear();
+        subklass = NULL;
+    }
+
     char ret = pyjava_getNType(env,subklass);
     PYJAVA_ENVCALL(env,DeleteLocalRef,subklass);
     return ret;

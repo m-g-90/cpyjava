@@ -281,6 +281,9 @@ static PyObject * pyjava_type_richcompare(PyObject * a, PyObject *b, int op){
 }
 
 char pyjava_getNType(JNIEnv * env,jclass klass){
+    if (!klass){
+        return (char)0;
+    }
     char ret = 0;
     jclass klassklass = PYJAVA_ENVCALL(env,GetObjectClass,klass);
     jmethodID toString = PYJAVA_ENVCALL(env,GetMethodID,klassklass,"getCanonicalName","()Ljava/lang/String;");
