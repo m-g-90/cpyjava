@@ -1,4 +1,4 @@
-![](https://img.shields.io/github/tag/m-g-90/cpyjava.svg) ![](https://img.shields.io/github/license/m-g-90/cpyjava.svg)
+[![tag](https://img.shields.io/github/tag/m-g-90/cpyjava.svg)](https://github.com/m-g-90/cpyjava/releases) [![license](https://img.shields.io/github/license/m-g-90/cpyjava.svg)](https://github.com/m-g-90/cpyjava/blob/master/License.md)
 
 [![Build Status](https://travis-ci.org/m-g-90/cpyjava.svg?branch=master)](https://travis-ci.org/m-g-90/cpyjava) [![Build status](https://ci.appveyor.com/api/projects/status/ce7afnnx892q5rl0/branch/master?svg=true)](https://ci.appveyor.com/project/m-g-90/cpyjava/branch/master) 
 
