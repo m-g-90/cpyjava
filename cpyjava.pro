@@ -37,8 +37,6 @@ win32 {
         
     }
 
-    INCLUDEPATH += "$${JDK_PATH}/include"
-    INCLUDEPATH += "$${JDK_PATH}/include/win32"
     INCLUDEPATH += "$${PYTHON_PATH}/include"
 
     LIBS += -L"$${PYTHON_PATH}/"
@@ -53,9 +51,6 @@ win32 {
 unix {
 
     QMAKE_CFLAGS += -std=c99 -Wall -Werror
-
-    INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include"
-    INCLUDEPATH += "/usr/lib/jvm/java-8-openjdk-amd64/include/linux"
 
     LIBS += -L"/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server"
     LIBS += -L"/usr/lib/jvm/java-8-openjdk-amd64/lib"

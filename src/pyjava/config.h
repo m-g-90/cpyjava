@@ -20,7 +20,7 @@
 #define PYJAVA_CONFIG_H
 
 #include <Python.h>
-#include <jni.h>
+#include <jni/jni.h>
 
 
 

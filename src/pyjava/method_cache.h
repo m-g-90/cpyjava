@@ -19,8 +19,7 @@
 #ifndef PYJAVA_METHOD_CACHE_H
 #define PYJAVA_METHOD_CACHE_H
 
-#include <jni.h>
-#include <Python.h>
+#include <pyjava/config.h>
 
 #ifdef __cplusplus
 extern "C"{

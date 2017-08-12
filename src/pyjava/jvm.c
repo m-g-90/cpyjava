@@ -39,13 +39,7 @@ static JavaVM * pyjava_jvmptr = NULL;
 typedef jint (*createJavaVM_t)(JavaVM **, void **, void *) ;
 
 
-static int pyjava_jnicheck =
-        #if defined(QT_DEBUG) || defined(DEBUG)
-            1
-        #else
-            0
-        #endif
-        ;
+static int pyjava_jnicheck = 0;
 
 PYJAVA_DLLSPEC void pyjava_checkJNI(int enable){
     pyjava_jnicheck = enable;
@@ -54,7 +48,7 @@ PYJAVA_DLLSPEC void pyjava_checkJNI(int enable){
 PYJAVA_DLLSPEC int pyjava_initJVM() {
 
     if (!pyjava_jvmptr){
-        jint (*createJavaVM)(JavaVM **, void **, void *) = NULL;
+        jint (*createJavaVM)(JavaVM **, JNIEnv **, void *) = NULL;
 
 #ifdef PYJAVA_JVM_FORCELINK
         if (!createJavaVM){
@@ -79,7 +73,7 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
             JNIEnv *env;
             JavaVM *vm;
             JavaVMInitArgs initArgs;
-            initArgs.version = JNI_VERSION_1_8;
+            initArgs.version = JNI_VERSION_1_6;
             initArgs.ignoreUnrecognized = JNI_TRUE;
             JavaVMOption options[50];
             int optioncount = 0;
@@ -122,7 +116,7 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
 
             initArgs.options = options;
             initArgs.nOptions = optioncount;
-            jint err = (*createJavaVM)(&vm, (void**)&env, &initArgs);
+            jint err = (*createJavaVM)(&vm, &env, &initArgs);
             if (err != JNI_OK){
 
             } else {
@@ -214,11 +208,11 @@ PYJAVA_DLLSPEC void _pyjava_start_java(JNIEnv ** env, int * borrowed){
     } else {
         JavaVM * vm = pyjava_getJVM();
         if (vm){
-            if (PYJAVA_ENVCALL(vm,GetEnv,(void**)env,JNI_VERSION_1_8) == JNI_OK){
+            if (PYJAVA_ENVCALL(vm,GetEnv,(void**)env,JNI_VERSION_1_6) == JNI_OK){
                 _pyjava_env = *env;
                 *borrowed = 2;
             } else {
-                PYJAVA_ENVCALL(vm,AttachCurrentThread,(void **)env, NULL);
+                PYJAVA_ENVCALL(vm,AttachCurrentThread,env, NULL);
                 _pyjava_env = *env;
                 *borrowed = 0;
             }

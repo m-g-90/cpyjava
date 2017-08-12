@@ -19,7 +19,7 @@
 #ifndef PYJAVA_TYPE_CACHE_H
 #define PYJAVA_TYPE_CACHE_H
 
-#include <jni.h>
+#include <pyjava/config.h>
 
 #ifdef __cplusplus
 extern "C"{

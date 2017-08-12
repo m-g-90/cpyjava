@@ -50,7 +50,7 @@ PYJAVA_DLLSPEC void pyjava_exit();
 #ifdef __cplusplus
 extern "C"
 #endif
-PYJAVA_DLLSPEC void JNICALL pyjava_registerObject(JNIEnv *,jobject dont_care, jstring name,jobject object);
+PYJAVA_DLLSPEC void pyjava_registerObject(JNIEnv *,jobject dont_care, jstring name,jobject object);
 
 typedef PyObject * (*pyjava_converter_j2p_t)(JNIEnv * env,jclass klass,jobject object);
 typedef jobject (*pyjava_converter_p2j_t)(JNIEnv * env,jclass klass,PyObject * obj);
