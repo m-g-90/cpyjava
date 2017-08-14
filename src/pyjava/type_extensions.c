@@ -280,7 +280,6 @@ static int java_object_array_ass_item(PyObject * o,Py_ssize_t index,PyObject * v
         PyErr_SetString(PyExc_Exception,"cannot change length of a java array");
         return -1;
     }
-    PyObject * ret = NULL;
     PYJAVA_START_JAVA(env);
     if (env){
         Py_ssize_t size = PYJAVA_ENVCALL(env,GetArrayLength,((PyJavaObject*)o)->obj);
