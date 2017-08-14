@@ -879,6 +879,10 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
 
         ret->klass = PYJAVA_ENVCALL(env,NewGlobalRef,klass);
         PYJAVA_SOFTASSERT(ret->klass);
+        ret->arrayklass = pyjava_get_array_sub_Type(env,ret->klass);
+        if (ret->arrayklass){
+            ret->arrayntype = pyjava_getNType(env,ret->arrayklass);
+        }
         ret->toString = PYJAVA_ENVCALL(env,GetMethodID,klass,"toString","()Ljava/lang/String;");
         PYJAVA_SOFTASSERT(ret->toString);
         PYJAVA_IGNORE_EXCEPTION(env);

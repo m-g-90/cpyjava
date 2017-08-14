@@ -128,7 +128,12 @@ int pyjava_is_arrayclass(JNIEnv * env,jclass obj){
 }
 
 static jmethodID _pyjava_array_sub_class = NULL;
-char pyjava_get_array_sub_NType(JNIEnv *env, jclass klass){
+/**
+ * @brief pyjava_get_array_sub_Type
+ * @param env
+ * @return new global reference to the array type
+ */
+jclass pyjava_get_array_sub_Type(JNIEnv * env,jclass klass) {
     if (!pyjava_is_arrayclass(env,klass)){
         return (char)0;
     }
@@ -146,13 +151,14 @@ char pyjava_get_array_sub_NType(JNIEnv *env, jclass klass){
         subklass = NULL;
     }
 
-    char ret = pyjava_getNType(env,subklass);
+    if (!subklass){
+        return subklass;
+    }
+
+    jclass ret = PYJAVA_ENVCALL(env,NewGlobalRef,subklass);
     PYJAVA_ENVCALL(env,DeleteLocalRef,subklass);
     return ret;
 }
-
-
-
 
 
 static jmethodID _pyjava_object_equal = NULL;

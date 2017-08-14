@@ -249,13 +249,148 @@ static Py_ssize_t java_array_length(PyObject * o){
     return size;
 }
 
-static PySequenceMethods java_object_array = {
+static PyObject * java_object_array_item(PyObject * o,Py_ssize_t index){
+    PyObject * ret = NULL;
+    PYJAVA_START_JAVA(env);
+    if (env){
+        Py_ssize_t size = PYJAVA_ENVCALL(env,GetArrayLength,((PyJavaObject*)o)->obj);
+        if (!pyjava_exception_java2python(env)){
+            if (index < 0){
+                if (size >= -index){
+                    index = size-index;
+                }
+            }
+            if (index < 0 || index >= size){
+                PyErr_SetString(PyExc_IndexError,"Index out of range");
+            } else {
+                jobject obj = PYJAVA_ENVCALL(env,GetObjectArrayElement,((PyJavaObject*)o)->obj,(jsize) index);
+                if (!pyjava_exception_java2python(env)){
+                    ret = pyjava_asPyObject(env,obj);
+                    PYJAVA_ENVCALL(env,DeleteLocalRef,obj);
+                }
+            }
+        }
+    }
+    PYJAVA_END_JAVA(env);
+    return ret;
+}
+
+static int java_object_array_ass_item(PyObject * o,Py_ssize_t index,PyObject * val){
+    if (!val){
+        PyErr_SetString(PyExc_Exception,"cannot change length of a java array");
+        return -1;
+    }
+    PyObject * ret = NULL;
+    PYJAVA_START_JAVA(env);
+    if (env){
+        Py_ssize_t size = PYJAVA_ENVCALL(env,GetArrayLength,((PyJavaObject*)o)->obj);
+        if (!pyjava_exception_java2python(env)){
+            if (index < 0){
+                if (size >= -index){
+                    index = size-index;
+                }
+            }
+            if (index < 0 || index >= size){
+                PyErr_SetString(PyExc_IndexError,"Index out of range");
+            } else {
+                jvalue jval;
+                if (pyjava_asJObject(env,val,((PyJavaType*)((PyJavaObject*)o->ob_type))->arrayklass,((PyJavaType*)((PyJavaObject*)o->ob_type))->arrayntype,&jval)){
+                    PYJAVA_ENVCALL(env,SetObjectArrayElement,((PyJavaObject*)o)->obj,(jsize) index,jval.l);
+                    if (!pyjava_exception_java2python(env)){
+
+                    }
+                    PYJAVA_ENVCALL(env,DeleteLocalRef,jval.l);
+                }
+            }
+        }
+    }
+    PYJAVA_END_JAVA(env);
+    if (PyErr_Occurred()){
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+static PySequenceMethods java_bool_array = {
     &java_array_length,// lenfunc sq_length,
     0,// binaryfunc sq_concat,
     0,// ssizeargfunc sq_repeat,
     0,// ssizeargfunc sq_item,
     0,// void *was_sq_slice,
     0,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+static PySequenceMethods java_byte_array = {
+    &java_array_length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    0,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    0,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+static PySequenceMethods java_char_array = {
+    &java_array_length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    0,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    0,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+static PySequenceMethods java_short_array = {
+    &java_array_length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    0,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    0,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+static PySequenceMethods java_int_array = {
+    &java_array_length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    0,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    0,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+static PySequenceMethods java_long_array = {
+    &java_array_length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    0,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    0,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+static PySequenceMethods java_object_array = {
+    &java_array_length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    &java_object_array_item,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    &java_object_array_ass_item,// ssizeobjargproc sq_ass_item,
     0,// void *was_sq_ass_slice,
     0,// objobjproc sq_contains,
     0,// binaryfunc sq_inplace_concat,
@@ -284,9 +419,20 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
         type->pto.tp_as_sequence = &java_util_List;
     } else if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_set_class(env))) {
         //todo support set
-    } else if (pyjava_is_arrayclass(env,type->klass)){
-        char ntype = pyjava_get_array_sub_NType(env,type->klass);
-        switch (ntype){
+    } else if (type->arrayklass){
+        switch (type->arrayntype){
+        case 'Z':
+            type->pto.tp_as_sequence = &java_bool_array; break;
+        case 'B':
+            type->pto.tp_as_sequence = &java_byte_array; break;
+        case 'C':
+            type->pto.tp_as_sequence = &java_char_array; break;
+        case 'S':
+            type->pto.tp_as_sequence = &java_short_array; break;
+        case 'I':
+            type->pto.tp_as_sequence = &java_int_array; break;
+        case 'j':
+            type->pto.tp_as_sequence = &java_long_array; break;
         case 'L':
         case '[':
             type->pto.tp_as_sequence = &java_object_array; break;

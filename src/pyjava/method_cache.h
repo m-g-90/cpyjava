@@ -29,7 +29,7 @@ jint pyjava_method_cache_identityHash(JNIEnv * env,jobject obj);
 void pyjava_method_cache_reset(JNIEnv * env);
 int pyjava_is_class(JNIEnv * env,jobject obj);
 int pyjava_is_arrayclass(JNIEnv * env,jclass obj);
-char pyjava_get_array_sub_NType(JNIEnv *env, jclass klass);
+jclass pyjava_get_array_sub_Type(JNIEnv * env,jclass klass);
 jclass pyjava_class_class(JNIEnv * env);
 jclass pyjava_map_class(JNIEnv * env);
 jclass pyjava_list_class(JNIEnv * env);
