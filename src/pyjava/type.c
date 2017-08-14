@@ -649,6 +649,43 @@ static int _pyjava_ptrinlist(PyObject * list,PyObject * ptr){
     return 0;
 }
 
+///////////////////////////////////////////////////////////////////////
+/// copied function from cpython:
+///
+/// "Copyright (c) 2001-2017 Python Software Foundation; All Rights Reserved"
+///
+///
+static int
+add_subclass(PyTypeObject *base, PyTypeObject *type)
+{
+    int result = -1;
+    PyObject *dict, *key, *newobj;
+
+    dict = base->tp_subclasses;
+    if (dict == NULL) {
+        base->tp_subclasses = dict = PyDict_New();
+        if (dict == NULL)
+            return -1;
+    }
+    assert(PyDict_CheckExact(dict));
+    key = PyLong_FromVoidPtr((void *) type);
+    if (key == NULL)
+        return -1;
+    newobj = PyWeakref_NewRef((PyObject *)type, NULL);
+    if (newobj != NULL) {
+        result = PyDict_SetItem(dict, key, newobj);
+        Py_DECREF(newobj);
+    }
+    Py_DECREF(key);
+    return result;
+}
+///
+///
+///
+///
+/// end of copied code from cpython
+//////////////////////////////////////////////////////////////////////////
+
 PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
 
 	if (!klass){
@@ -1365,6 +1402,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
                 PyTypeObject * curbase = (PyTypeObject *) PyList_GET_ITEM(bases,i);
                 if (!_pyjava_ptrinlist(nbases,(PyObject*)curbase)){
                     PyList_Append(nbases,(PyObject*)curbase);
+                    add_subclass(curbase,&(ret->pto));
                     if (!_pyjava_ptrinlist(nmro,(PyObject*)curbase)){
                         PyList_Append(nmro,(PyObject*)curbase);
                         for (Py_ssize_t j = 0; j < PyTuple_Size(curbase->tp_mro);j++){
