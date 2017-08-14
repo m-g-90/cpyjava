@@ -1411,31 +1411,31 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
         }
 
         {
-            PyObject * globals = PyDict_New();
-            PyDict_SetItemString(globals, "__builtins__", PyEval_GetBuiltins());
+            PyObject * module = pyjava_getModule();
+            if (module){
+                PyObject * globals = PyModule_GetDict(module);
+                PyObject * locals = PyDict_New();
 
-            ret->pto.tp_dict = PyDict_New();
-            {
-                for (Py_ssize_t i = 0;i<PyTuple_Size(ret->dir);i++){
-                    PyDict_SetItem(ret->pto.tp_dict,PyTuple_GET_ITEM(ret->dir,i),Py_None);
+                ret->pto.tp_dict = PyDict_New();
+                {
+                    for (Py_ssize_t i = 0;i<PyTuple_Size(ret->dir);i++){
+                        PyDict_SetItem(ret->pto.tp_dict,PyTuple_GET_ITEM(ret->dir,i),Py_None);
+                    }
                 }
+                {
+                    const char * def =
+                            "tmp = (lambda syms: lambda o: syms(o))(symbols)\n"
+                            ;
+                    PyRun_String(def, Py_single_input, globals, locals);
+                    PyObject * d = PyRun_String("tmp", Py_eval_input, globals, locals);
+                    PyObject * dir = PyUnicode_FromString("__dir__");
+                    PyDict_SetItem(ret->pto.tp_dict,dir,d);
+                    Py_DecRef(dir);
+                    Py_DecRef(d);
+                }
+                Py_DecRef(locals);
+                Py_DecRef(module);
             }
-            {
-                const char * def =
-                        "tmp = (lambda i: lambda o: i('cpyjava').symbols(o))(__builtins__['__import__'])\n"
-                        ;
-                PyRun_String(def, Py_single_input, globals, globals);
-                PyObject * d = PyRun_String("tmp", Py_eval_input, globals, globals);
-                PyObject * dir = PyUnicode_FromString("__dir__");
-                PyDict_SetItem(ret->pto.tp_dict,dir,d);
-                Py_DecRef(dir);
-                Py_DecRef(d);
-            }
-
-            if (globals){
-                Py_DecRef(globals);
-            }
-
 
         }
 
