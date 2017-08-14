@@ -445,6 +445,47 @@ static PyObject * pyjava_typeAsClassObject(PyObject * module, PyObject *_args){
 
 }
 
+static PyObject * pyjava_cast(PyObject * module, PyObject *_args){
+
+    (void)module;
+
+    PyObject * type = NULL;
+    PyObject * obj = NULL;
+    if (!PyArg_ParseTuple(_args, "OO", &type,&obj)){
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_Exception,"2 arguments expected: type,object");
+        return NULL;
+    }
+
+    if (!PyType_CheckExact(type) || !pyjava_isJavaClass((PyTypeObject*)type)){
+        PyErr_SetString(PyExc_Exception,"argument 1 is not a java type");
+    }
+
+    PyObject * ret = NULL;
+
+    PYJAVA_START_JAVA(env);
+    if (env){
+        jvalue jval;
+        jval.l = NULL;
+        const char ntype = pyjava_getNType(env,((PyJavaType*)type)->klass);
+        if (ntype=='L' || ntype=='['){
+            if (pyjava_asJObject(env,obj,((PyJavaType*)type)->klass,ntype,&jval)){
+                ret = pyjava_asUnconvertedWrappedObject(env,jval.l);
+            }
+        } else {
+            PyErr_SetString(PyExc_Exception,"explicit conversion to primitive type is not supported");
+        }
+    }
+    PYJAVA_END_JAVA(env);
+
+    if (!ret && !PyErr_Occurred()){
+        PyErr_SetString(PyExc_Exception,"conversion failed");
+    }
+
+    return ret;
+
+}
+
 
 
 static PyObject * registeredObjects = NULL;
@@ -503,6 +544,7 @@ static PyMethodDef cpyjavamethods[] = {
     {"memstat",pyjava_mem_stat,METH_VARARGS,"memstat(): returns a string with information about the memory consumption of cpyjava."},
     {"symbols",pyjava_symbols,METH_VARARGS,"symbols(jobject): returns a tuple of symbols of the given object. Behaves like dir()."},
     {"typeAsClassObject",pyjava_typeAsClassObject,METH_VARARGS,"typeAsClassObject(javaType): returns a wrapped java.lang.Class object from a java type (e.g. optained by cpyjava.getType('java/lang/String'))"},
+    {"cast",pyjava_cast,METH_VARARGS,"case(jtype,any_object),returns a wrapped java object of the specified java type."},
     {NULL, NULL, 0, NULL}
 };
 

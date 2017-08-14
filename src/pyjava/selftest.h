@@ -183,6 +183,12 @@ static const char * pyjava_selftests[] = {
     "assert count == 2, 'list test failed (5)'"
 
     ,
+    "import cpyjava\n"
+    "jstring = cpyjava.cast(cpyjava.getType(\"java/lang/String\"),\"test\")\n"
+    "assert type(jstring) is cpyjava.getType(\"java/lang/String\") , 'explicit casting failed'\n"
+
+
+    ,
     NULL
 };
 

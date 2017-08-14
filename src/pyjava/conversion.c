@@ -232,6 +232,27 @@ PyObject * pyjava_asWrappedObject(JNIEnv * env, PyObject * obj){
 
 }
 
+
+PyObject * pyjava_asUnconvertedWrappedObject(JNIEnv * env,jobject obj){
+
+    if (!obj){
+        Py_RETURN_NONE;
+    }
+
+    jclass klass = PYJAVA_ENVCALL(env,GetObjectClass,obj);
+    if (klass){
+        PyTypeObject * type = pyjava_classAsType(env,klass);
+        PYJAVA_ENVCALL(env,DeleteLocalRef,klass);
+        if (type){
+            return _pyjava_wrapObject(env,obj,(PyJavaType*)type,0);
+        }
+    }
+
+    PyErr_SetString(PyExc_TypeError,"Passed object cannot be returned a a wrapped java object.");
+    return NULL;
+
+}
+
 PyObject * pyjava_asPyObject(JNIEnv * env, jobject obj){
     if (!obj){
         Py_RETURN_NONE;
