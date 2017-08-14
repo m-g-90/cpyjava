@@ -45,7 +45,12 @@ win32 {
     LIBS += -L"$${JDK_PATH}/lib"
     LIBS += -ljvm
 
+CONFIG(debug, debug|release) {
     QMAKE_CFLAGS += /Wall /WX
+}else{
+    QMAKE_CFLAGS += /Wall
+}
+
 
 }
 unix {
