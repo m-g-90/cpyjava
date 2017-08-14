@@ -51,6 +51,20 @@ PYJAVA_METHOD_CACHE_CLASS("java/lang/Class",class)
 PYJAVA_METHOD_CACHE_CLASS("java/lang/Comparable",compareable)
 PYJAVA_METHOD_CACHE_CLASS("java/lang/Throwable",throwable)
 
+#define PYJAVA_METHOD_CACHE_METHOD(SHORTNAME,METHODNAME,SIGNATURE)\
+    static jmethodID _pyjava_##SHORTNAME##_##METHODNAME##_method = NULL; \
+    jmethodID pyjava_##SHORTNAME##_##METHODNAME##_method(JNIEnv * env){ \
+        if (!_pyjava_##SHORTNAME##_##METHODNAME##_method){\
+            jclass klass = pyjava_##SHORTNAME##_class(env);\
+            if (klass) { \
+                _pyjava_##SHORTNAME##_##METHODNAME##_method = PYJAVA_ENVCALL(env,GetMethodID,klass, PYJAVA_TOSTRING(METHODNAME),SIGNATURE); \
+            }\
+        }\
+        return _pyjava_##SHORTNAME##_##METHODNAME##_method;\
+    }
+
+PYJAVA_METHOD_CACHE_METHOD(compareable,compareTo,"(Ljava/lang/Object;)I")
+
 static jclass _pyjava_identityHash_system = NULL;
 static jmethodID _pyjava_identityHash_system_identityHash = NULL;
 jint pyjava_method_cache_identityHash(JNIEnv * env,jobject obj){

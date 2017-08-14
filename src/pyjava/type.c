@@ -237,44 +237,63 @@ static PyObject * pyjava_type_richcompare(PyObject * a, PyObject *b, int op){
     if (a == b){
         Py_RETURN_TRUE;
     }
-    if (!pyjava_isJavaClass(b->ob_type)){
-        switch (op){
-        case Py_NE:
-            Py_RETURN_TRUE;
-        case Py_EQ:
-            Py_RETURN_FALSE;
-        default:
-            Py_RETURN_NOTIMPLEMENTED;
-        }
-    }
-    if (op == Py_EQ || op == Py_NE){
+    if ((op == Py_EQ || op == Py_NE) && pyjava_isJavaClass(b->ob_type)){
+        Py_IncRef(b);
         PYJAVA_START_JAVA(env);
-        int result = pyjava_object_equal(env,((PyJavaObject*)a)->obj,((PyJavaObject*)b)->obj);
-        int erroccured = pyjava_exception_java2python(env);
-        PYJAVA_END_JAVA(env);
-        if (erroccured){
-            return NULL;
+        if (!pyjava_isJavaClass(b->ob_type)){
+            jvalue jval;
+            if (pyjava_asJObject(env,b,pyjava_object_class(env),'L',&jval)){
+                Py_DecRef(b);
+                b = pyjava_asUnconvertedWrappedObject(env,jval.l);
+                PYJAVA_ENVCALL(env,DeleteLocalRef,jval.l);
+            }
         }
-        if (result<0){
-            Py_RETURN_NOTIMPLEMENTED;
-        }
-        if (op == Py_EQ){
-            if (result){
-                Py_RETURN_TRUE;
+        if (pyjava_isJavaClass(b->ob_type)){
+            int result = pyjava_object_equal(env,((PyJavaObject*)a)->obj,((PyJavaObject*)b)->obj);
+            int erroccured = pyjava_exception_java2python(env);
+            PYJAVA_END_JAVA(env);
+            if (!erroccured){
+                if (result<0){
+                    Py_DecRef(b);
+                    Py_RETURN_NOTIMPLEMENTED;
+                }
+                if (op == Py_EQ){
+                    if (result){
+                        Py_DecRef(b);
+                        Py_RETURN_TRUE;
+                    } else {
+                        Py_DecRef(b);
+                        Py_RETURN_FALSE;
+                    }
+                } else {
+                    if (result){
+                        Py_DecRef(b);
+                        Py_RETURN_FALSE;
+                    } else {
+                        Py_DecRef(b);
+                        Py_RETURN_TRUE;
+                    }
+                }
             } else {
-                Py_RETURN_FALSE;
+                PyErr_Clear();
             }
         } else {
-            if (result){
-                Py_RETURN_FALSE;
-            } else {
-                Py_RETURN_TRUE;
-            }
+            PYJAVA_END_JAVA(env);
         }
+        Py_DecRef(b);
     }
 
+    PyObject * ret = NULL;
+
     if (((PyJavaType*)a->ob_type)->tp_richcompare_impl){
-        return ((PyJavaType*)a->ob_type)->tp_richcompare_impl(a,b,op);
+        ret = ((PyJavaType*)a->ob_type)->tp_richcompare_impl(a,b,op);
+    }
+
+    if (PyErr_Occurred()){
+        PyErr_Clear();
+    } else {
+        if (ret)
+            return ret;
     }
 
     Py_RETURN_NOTIMPLEMENTED;

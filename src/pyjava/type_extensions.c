@@ -194,6 +194,53 @@ static PySequenceMethods java_util_List = {
     0// ssizeargfunc sq_inplace_repeat
 };
 
+static PyObject * java_lang_compareable(PyObject * self, PyObject * other, int op){
+
+    PyObject * ret = NULL;
+
+    PYJAVA_START_JAVA(env);
+    jmethodID meth = pyjava_compareable_compareTo_method(env);
+    if (meth){
+        jvalue jval;
+        jval.l = NULL;
+        if (pyjava_asJObject(env,other,pyjava_object_class(env),'L',&jval)){
+            int result = PYJAVA_ENVCALL(env,CallIntMethodA,((PyJavaObject*)self)->obj,meth,&jval);
+            if (!pyjava_exception_java2python(env)){
+                switch (op) {
+                case Py_EQ:
+                    ret = PyBool_FromLong(result?0:1);
+                    break;
+                case Py_NE:
+                    ret = PyBool_FromLong(result?1:0);
+                    break;
+                case Py_GT:
+                    ret = PyBool_FromLong(result>0?1:0);
+                    break;
+                case Py_GE:
+                    ret = PyBool_FromLong(result>=0?1:0);
+                    break;
+                case Py_LT:
+                    ret = PyBool_FromLong(result<0?1:0);
+                    break;
+                case Py_LE:
+                    ret = PyBool_FromLong(result<=0?1:0);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    }
+    PYJAVA_END_JAVA(env);
+
+    if (!ret && !PyErr_Occurred()){
+        PyErr_SetString(PyExc_Exception,"comparison failed");
+    }
+
+    return ret;
+
+}
+
 static Py_ssize_t java_array_length(PyObject * o){
     Py_ssize_t size = -1;
     PYJAVA_START_JAVA(env);
@@ -226,7 +273,7 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
         type->pto.tp_iternext = &java_lang_Iterator_next;
     }
     if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_compareable_class(env))){
-        //todo: richcompare for LT/GT
+        type->tp_richcompare_impl = &java_lang_compareable;
     }
 
 

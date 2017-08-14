@@ -40,6 +40,7 @@ jclass pyjava_iterator_class(JNIEnv * env);
 jclass pyjava_compareable_class(JNIEnv * env);
 jclass pyjava_throwable_class(JNIEnv * env);
 int pyjava_object_equal(JNIEnv * env,jobject o1,jobject o2);
+jmethodID pyjava_compareable_compareTo_method(JNIEnv * env);
 
 #ifdef __cplusplus
 }
