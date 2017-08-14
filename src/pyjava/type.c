@@ -686,6 +686,64 @@ add_subclass(PyTypeObject *base, PyTypeObject *type)
 /// end of copied code from cpython
 //////////////////////////////////////////////////////////////////////////
 
+static void _pyjava_inherit_decorator(PyJavaDecoration * dst,PyJavaDecoration * src){
+    if (!dst->tp_call && src->tp_call){
+        Py_IncRef(src->tp_call);
+        dst->tp_call = src->tp_call;
+        dst->inherited.tp_call = 1;
+    }
+    if (!dst->tp_getattro && src->tp_getattro){
+        Py_IncRef(src->tp_getattro);
+        dst->tp_getattro = src->tp_getattro;
+        dst->inherited.tp_getattro = 1;
+    }
+    if (!dst->tp_setattro && src->tp_setattro){
+        Py_IncRef(src->tp_setattro);
+        dst->tp_setattro = src->tp_setattro;
+        dst->inherited.tp_setattro = 1;
+    }
+}
+
+static void _pyjava_inherit_decorators(PyJavaType * type){
+    if (type->decoration.inherited.tp_call && type->decoration.tp_call){
+        Py_DecRef(type->decoration.tp_call);
+        type->decoration.tp_call = NULL;
+        type->decoration.inherited.tp_call = 0;
+    }
+    if (type->decoration.inherited.tp_getattro && type->decoration.tp_getattro){
+        Py_DecRef(type->decoration.tp_getattro);
+        type->decoration.tp_getattro = NULL;
+        type->decoration.inherited.tp_getattro = 0;
+    }
+    if (type->decoration.inherited.tp_setattro && type->decoration.tp_setattro){
+        Py_DecRef(type->decoration.tp_setattro);
+        type->decoration.tp_setattro = NULL;
+        type->decoration.inherited.tp_setattro = 0;
+    }
+
+    if (type->pto.tp_base){
+        if (pyjava_isJavaClass(type->pto.tp_base)){
+            _pyjava_inherit_decorator(&type->decoration,&((PyJavaType*)type->pto.tp_base)->decoration);
+        }
+    }
+    if (type->pto.tp_bases){
+        if (PyTuple_CheckExact(type->pto.tp_bases)){
+            const Py_ssize_t size = PyTuple_Size(type->pto.tp_bases);
+            for (Py_ssize_t i = 0; i<size;i++){
+                if (pyjava_isJavaClass((PyTypeObject*)(PyTuple_GET_ITEM(type->pto.tp_bases,i)))){
+                    _pyjava_inherit_decorator(&type->decoration,&((PyJavaType*)(PyTuple_GET_ITEM(type->pto.tp_bases,i)))->decoration);
+                }
+            }
+        }
+    }
+}
+
+void pyjava_inherit_decorators(PyTypeObject * type){
+    if (pyjava_isJavaClass(type)){
+        _pyjava_inherit_decorators((PyJavaType*)type);
+    }
+}
+
 PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
 
 	if (!klass){
@@ -812,6 +870,9 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
         ret->dir = PyList_New(0);
         PYJAVA_ASSERT(ret->dir);
         ret->pto.tp_dict = PyDict_New();
+        ret->decoration.inherited.tp_call = 1;
+        ret->decoration.inherited.tp_getattro = 1;
+        ret->decoration.inherited.tp_setattro = 1;
         PYJAVA_ASSERT(ret->pto.tp_dict);
         // parent class
         {
@@ -1386,6 +1447,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
             ret->pto.tp_bases = PyTuple_New(1);
             Py_IncRef((PyObject*)ret->pto.tp_base);
             PyTuple_SetItem(ret->pto.tp_bases,0,(PyObject*)ret->pto.tp_base);
+
         } else {
             ret->pto.tp_bases = NULL;
         }
@@ -1423,6 +1485,7 @@ PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass){
 
         Py_DecRef(bases);
 
+        _pyjava_inherit_decorators(ret);
 
         pyjava_typecache_register(env,ret);
 

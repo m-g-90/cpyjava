@@ -222,6 +222,53 @@ static PyObject * pyjava_selftest(PyObject *  self,PyObject * _args){
 
 }
 
+
+static void _pyjava_handleDecoratorInheritance(PyJavaType * changed){
+    PyObject * lcur = PyList_New(0);
+    PyObject * lnext = PyList_New(0);
+
+    PyList_Append(lcur,(PyObject*)changed);
+
+    while (PyList_Size(lcur) > 0){
+        //build lnext
+        for (Py_ssize_t icur = 0;icur < PyList_GET_SIZE(lcur);icur++){
+            PyTypeObject * tcur = (PyTypeObject*) PyList_GET_ITEM(lcur,icur);
+            Py_ssize_t subpos = 0;
+            PyObject * key,*value;
+            if (tcur->tp_subclasses){
+                while(PyDict_Next(tcur->tp_subclasses,&subpos,&key,&value)){
+                    if (value && PyWeakref_Check(value)){
+                        PyObject * subtype = PyWeakref_GetObject(value);
+                        if (subtype){
+                            if (PyType_CheckExact(subtype) && pyjava_isJavaClass((PyTypeObject*)subtype)){
+                                PyList_Append(lnext,subtype);
+                            }
+                            Py_DecRef(subtype);
+                        }
+                    }
+                }
+            }
+        }
+
+        // update inheritance for lnext list
+        for (Py_ssize_t inext = 0;inext < PyList_GET_SIZE(lnext);inext++){
+            PyTypeObject * tnext = (PyTypeObject*) PyList_GET_ITEM(lnext,inext);
+            pyjava_inherit_decorators(tnext);
+        }
+
+        //prepare next iteration
+        Py_DecRef(lcur);
+        lcur = lnext;
+        lnext = PyList_New(0);
+
+    }
+
+    Py_DecRef(lcur);
+    Py_DecRef(lnext);
+
+
+}
+
 static PyObject * pyjava_setCallDecorator(PyObject * self, PyObject *_args){
     (void)self;
 
@@ -242,12 +289,16 @@ static PyObject * pyjava_setCallDecorator(PyObject * self, PyObject *_args){
     if (jtype->decoration.tp_call){
         Py_DecRef(jtype->decoration.tp_call);
         jtype->decoration.tp_call = NULL;
+        jtype->decoration.inherited.tp_call = 1;
     }
 
     if (callback != Py_None){
         Py_IncRef(callback);
         jtype->decoration.tp_call = callback;
+        jtype->decoration.inherited.tp_call = 0;
     }
+
+    _pyjava_handleDecoratorInheritance(jtype);
 
     Py_RETURN_NONE;
 
@@ -273,12 +324,16 @@ static PyObject * pyjava_setGetterDecorator(PyObject * self, PyObject *_args){
     if (jtype->decoration.tp_getattro){
         Py_DecRef(jtype->decoration.tp_getattro);
         jtype->decoration.tp_getattro = NULL;
+        jtype->decoration.inherited.tp_getattro = 1;
     }
 
     if (callback != Py_None){
         Py_IncRef(callback);
         jtype->decoration.tp_getattro = callback;
+        jtype->decoration.inherited.tp_getattro = 0;
     }
+
+    _pyjava_handleDecoratorInheritance(jtype);
 
     Py_RETURN_NONE;
 
@@ -304,12 +359,16 @@ static PyObject * pyjava_setSetterDecorator(PyObject * self, PyObject *_args){
     if (jtype->decoration.tp_setattro){
         Py_DecRef(jtype->decoration.tp_setattro);
         jtype->decoration.tp_setattro = NULL;
+        jtype->decoration.inherited.tp_setattro = 1;
     }
 
     if (callback != Py_None){
         Py_IncRef(callback);
         jtype->decoration.tp_setattro = callback;
+        jtype->decoration.inherited.tp_setattro = 0;
     }
+
+    _pyjava_handleDecoratorInheritance(jtype);
 
     Py_RETURN_NONE;
 

@@ -91,7 +91,7 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
             if (handle){
                 createJavaVM = (createJavaVM_t) GetProcAddress(handle,"JNI_CreateJavaVM");
             } else {
-                printf("Failed to open jvm library. Error Code %i",GetLastError());
+                printf("Failed to open jvm library. Error Code %i\n",GetLastError());
             }
         }
 #endif

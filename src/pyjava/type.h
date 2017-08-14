@@ -70,6 +70,12 @@ typedef struct PyJavaDecoration {
     PyObject * tp_call;
     PyObject * tp_getattro;
     PyObject * tp_setattro;
+    struct {
+        uint32_t tp_call : 1;
+        uint32_t tp_getattro : 1;
+        uint32_t tp_setattro : 1;
+        uint32_t reserved : 29;
+    } inherited;
 } PyJavaDecoration;
 
 #define PYJAVA_SYMBOL_BUCKET_COUNT 32
@@ -98,6 +104,7 @@ void pyjava_setField(JNIEnv * env, PyObject * _obj,const char * name,PyObject * 
 char pyjava_getNType(JNIEnv * env,jclass klass);
 PyTypeObject * pyjava_classAsType(JNIEnv * env,jclass klass);
 PyTypeObject * pyjava_classNameAsType(JNIEnv * env,PyObject * classloader,const char * classname);
+void pyjava_inherit_decorators(PyTypeObject * type);
 
 #ifdef __cplusplus
 }
