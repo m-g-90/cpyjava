@@ -5,7 +5,11 @@
 [![codecov](https://codecov.io/gh/m-g-90/cpyjava/branch/master/graph/badge.svg)](https://codecov.io/gh/m-g-90/cpyjava)  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2410def413924018a31c088d65ff5e5e)](https://www.codacy.com/app/m-g-90/cpyjava?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=m-g-90/cpyjava&amp;utm_campaign=Badge_Grade) ![](https://scan.coverity.com/projects/13312/badge.svg)
 
 
-python extension to use java objects.
+cpyjava is a python extension/module to enable use of java objects from python (cpython). This extension uses JNI to interface with java objects. 
+
+Alternatives/Similar Projects:
+  - JPype also allows cpython to interface with java objects via JNI, however it has the issue that object classes are referenced by name (not by the class object) which leads to issues in more complicated class loader structures.
+  - Py4j is an python module that uses sockets (not JNI) to communicate between python and java.
 
 Features:
   - supports 'isinstanceof'
