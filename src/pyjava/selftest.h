@@ -197,8 +197,14 @@ static const char * pyjava_selftests[] = {
     "import cpyjava\n"
     "jstring = cpyjava.cast(cpyjava.getType(\"java/lang/String\"),\"test\")\n"
     "assert type(jstring) is cpyjava.getType(\"java/lang/String\") , 'explicit casting failed'\n"
-
-
+    "carray = jstring.toCharArray()\n"
+    "assert \"t\"==carray[0] , 'char array access failed (1)'\n"
+    "carray[0] = 'x'\n"
+    "assert \"x\"==carray[0] , 'char array access failed (2)'\n"
+    "barray = jstring.getBytes()\n"
+    "assert 116==barray[0] , 'byte array access failed (1)'\n"
+    "barray[0] = 120\n"
+    "assert 120==barray[0] , 'byte array access failed (2)'\n"
     ,
     NULL
 };

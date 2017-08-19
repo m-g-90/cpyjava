@@ -311,13 +311,139 @@ static int java_object_array_ass_item(PyObject * o,Py_ssize_t index,PyObject * v
     }
 }
 
+#define PYJAVA_ARRAY_INT_SEQUENCE(NAME,JTYPE,UJTYPE,MODE) \
+    static PyObject * java_##NAME##_array_item(PyObject * o,Py_ssize_t index){\
+    PyObject * ret = NULL;\
+    PYJAVA_START_JAVA(env);\
+    if (env){\
+        Py_ssize_t size = PYJAVA_ENVCALL(env,GetArrayLength,((PyJavaObject*)o)->obj);\
+        if (!pyjava_exception_java2python(env)){\
+            if (index < 0){\
+                if (size >= -index){\
+                    index = size-index;\
+                }\
+            }\
+            if (index < 0 || index >= size){\
+                PyErr_SetString(PyExc_IndexError,"Index out of range");\
+            } else {\
+                JTYPE * obj = (JTYPE *) PYJAVA_ENVCALL(env,GetPrimitiveArrayCritical,((PyJavaObject*)o)->obj,NULL);\
+                switch (MODE){ \
+                    case 0: ret = PyLong_FromLongLong((long long)obj[index]); break; \
+                    case 1: ret = PyFloat_FromDouble((double)obj[index]); break; \
+                    case 2: ret = PyBool_FromLong((long)obj[index]); break; \
+                    case 3: { \
+                        wchar_t str[2]; \
+                        str[0] = (wchar_t) obj[index]; \
+                        str[1] = 0; \
+                        ret = PyUnicode_FromWideChar(str,1); \
+                    } \
+                    break; \
+                } \
+                PYJAVA_ENVCALL(env,ReleasePrimitiveArrayCritical,((PyJavaObject*)o)->obj,(void*)obj,JNI_ABORT);\
+            }\
+        }\
+    }\
+    PYJAVA_END_JAVA(env);\
+    return ret;\
+    }\
+    static int java_##NAME##_array_ass_item(PyObject * o,Py_ssize_t index,PyObject * val){\
+        if (!val){\
+            PyErr_SetString(PyExc_Exception,"cannot change length of a java array");\
+            return -1;\
+        }\
+        switch (MODE){ \
+            case 0: \
+            {\
+                if (!PyLong_CheckExact(val)){\
+                    PyErr_SetString(PyExc_Exception,"wrong type for array");\
+                    return -1;\
+                }\
+            }\
+            break; \
+            case 1: \
+            {\
+                if (!PyFloat_CheckExact(val)){\
+                    PyErr_SetString(PyExc_Exception,"wrong type for array");\
+                    return -1;\
+                }\
+            }\
+            break; \
+            case 2: \
+            {\
+                if (!PyBool_Check(val)){\
+                    PyErr_SetString(PyExc_Exception,"wrong type for array");\
+                    return -1;\
+                }\
+            }\
+            break; \
+            case 3: \
+            {\
+                if (!PyLong_CheckExact(val)){\
+                    if (!PyUnicode_CheckExact(val) || PyUnicode_GetSize(val)!=1){\
+                        PyErr_SetString(PyExc_Exception,"wrong type for array");\
+                        return -1;\
+                    }\
+                }\
+            }\
+            break; \
+        } \
+        PYJAVA_START_JAVA(env);\
+        if (env){\
+            Py_ssize_t size = PYJAVA_ENVCALL(env,GetArrayLength,((PyJavaObject*)o)->obj);\
+            if (!pyjava_exception_java2python(env)){\
+                if (index < 0){\
+                    if (size >= -index){\
+                        index = size-index;\
+                    }\
+                }\
+                if (index < 0 || index >= size){\
+                    PyErr_SetString(PyExc_IndexError,"Index out of range");\
+                } else {\
+                    static_assert(sizeof(JTYPE)<=sizeof(long long),"long long smaller than" PYJAVA_TOSTRING(JTYPE)); \
+                    JTYPE * obj = (JTYPE *) PYJAVA_ENVCALL(env,GetPrimitiveArrayCritical,((PyJavaObject*)o)->obj,NULL);\
+                    switch (MODE){ \
+                        case 0: obj[index] = (JTYPE) PyLong_AsLongLong(val); break; \
+                        case 1: obj[index] = (JTYPE) PyFloat_AsDouble(val); break; \
+                        case 2: obj[index] = (JTYPE) (val==Py_True?1:0); break; \
+                        case 3: {\
+                            if (PyLong_CheckExact(val)){ \
+                                obj[index] = (JTYPE) PyLong_AsLongLong(val); \
+                            } else { \
+                                wchar_t x[2]; \
+                                PyUnicode_AsWideChar(val,x,1); \
+                                obj[index] = (JTYPE) x[0]; \
+                            }\
+                        }\
+                        break; \
+                    } \
+                    PYJAVA_ENVCALL(env,ReleasePrimitiveArrayCritical,((PyJavaObject*)o)->obj,(void*)obj,0);\
+                }\
+            }\
+        }\
+        PYJAVA_END_JAVA(env);\
+        if (PyErr_Occurred()){\
+            return -1;\
+        } else {\
+            return 0;\
+        }\
+    }
+
+PYJAVA_ARRAY_INT_SEQUENCE(boolean,jboolean,Boolean,2)
+PYJAVA_ARRAY_INT_SEQUENCE(byte,jbyte,Byte,0)
+PYJAVA_ARRAY_INT_SEQUENCE(char,jchar,Char,3)
+PYJAVA_ARRAY_INT_SEQUENCE(short,jshort,Short,0)
+PYJAVA_ARRAY_INT_SEQUENCE(int,jint,Int,0)
+PYJAVA_ARRAY_INT_SEQUENCE(long,jlong,Long,0)
+PYJAVA_ARRAY_INT_SEQUENCE(float,jfloat,Float,1)
+PYJAVA_ARRAY_INT_SEQUENCE(double,jdouble,Double,1)
+
 static PySequenceMethods java_bool_array = {
     &java_array_length,// lenfunc sq_length,
     0,// binaryfunc sq_concat,
     0,// ssizeargfunc sq_repeat,
-    0,// ssizeargfunc sq_item,
+    &java_boolean_array_item,// ssizeargfunc sq_item,
     0,// void *was_sq_slice,
-    0,// ssizeobjargproc sq_ass_item,
+    &java_boolean_array_ass_item,// ssizeobjargproc sq_ass_item,
     0,// void *was_sq_ass_slice,
     0,// objobjproc sq_contains,
     0,// binaryfunc sq_inplace_concat,
@@ -327,9 +453,9 @@ static PySequenceMethods java_byte_array = {
     &java_array_length,// lenfunc sq_length,
     0,// binaryfunc sq_concat,
     0,// ssizeargfunc sq_repeat,
-    0,// ssizeargfunc sq_item,
+    &java_byte_array_item,// ssizeargfunc sq_item,
     0,// void *was_sq_slice,
-    0,// ssizeobjargproc sq_ass_item,
+    &java_byte_array_ass_item,// ssizeobjargproc sq_ass_item,
     0,// void *was_sq_ass_slice,
     0,// objobjproc sq_contains,
     0,// binaryfunc sq_inplace_concat,
@@ -339,9 +465,9 @@ static PySequenceMethods java_char_array = {
     &java_array_length,// lenfunc sq_length,
     0,// binaryfunc sq_concat,
     0,// ssizeargfunc sq_repeat,
-    0,// ssizeargfunc sq_item,
+    &java_char_array_item,// ssizeargfunc sq_item,
     0,// void *was_sq_slice,
-    0,// ssizeobjargproc sq_ass_item,
+    &java_char_array_ass_item,// ssizeobjargproc sq_ass_item,
     0,// void *was_sq_ass_slice,
     0,// objobjproc sq_contains,
     0,// binaryfunc sq_inplace_concat,
@@ -351,9 +477,9 @@ static PySequenceMethods java_short_array = {
     &java_array_length,// lenfunc sq_length,
     0,// binaryfunc sq_concat,
     0,// ssizeargfunc sq_repeat,
-    0,// ssizeargfunc sq_item,
+    &java_short_array_item,// ssizeargfunc sq_item,
     0,// void *was_sq_slice,
-    0,// ssizeobjargproc sq_ass_item,
+    &java_short_array_ass_item,// ssizeobjargproc sq_ass_item,
     0,// void *was_sq_ass_slice,
     0,// objobjproc sq_contains,
     0,// binaryfunc sq_inplace_concat,
@@ -363,9 +489,9 @@ static PySequenceMethods java_int_array = {
     &java_array_length,// lenfunc sq_length,
     0,// binaryfunc sq_concat,
     0,// ssizeargfunc sq_repeat,
-    0,// ssizeargfunc sq_item,
+    &java_int_array_item,// ssizeargfunc sq_item,
     0,// void *was_sq_slice,
-    0,// ssizeobjargproc sq_ass_item,
+    &java_int_array_ass_item,// ssizeobjargproc sq_ass_item,
     0,// void *was_sq_ass_slice,
     0,// objobjproc sq_contains,
     0,// binaryfunc sq_inplace_concat,
@@ -375,9 +501,33 @@ static PySequenceMethods java_long_array = {
     &java_array_length,// lenfunc sq_length,
     0,// binaryfunc sq_concat,
     0,// ssizeargfunc sq_repeat,
-    0,// ssizeargfunc sq_item,
+    &java_long_array_item,// ssizeargfunc sq_item,
     0,// void *was_sq_slice,
-    0,// ssizeobjargproc sq_ass_item,
+    &java_long_array_ass_item,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+static PySequenceMethods java_float_array = {
+    &java_array_length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    &java_float_array_item,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    &java_float_array_ass_item,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+static PySequenceMethods java_double_array = {
+    &java_array_length,// lenfunc sq_length,
+    0,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    &java_double_array_item,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    &java_double_array_ass_item,// ssizeobjargproc sq_ass_item,
     0,// void *was_sq_ass_slice,
     0,// objobjproc sq_contains,
     0,// binaryfunc sq_inplace_concat,
@@ -430,8 +580,12 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
             type->pto.tp_as_sequence = &java_short_array; break;
         case 'I':
             type->pto.tp_as_sequence = &java_int_array; break;
-        case 'j':
+        case 'J':
             type->pto.tp_as_sequence = &java_long_array; break;
+        case 'F':
+            type->pto.tp_as_sequence = &java_float_array; break;
+        case 'D':
+            type->pto.tp_as_sequence = &java_double_array; break;
         case 'L':
         case '[':
             type->pto.tp_as_sequence = &java_object_array; break;
