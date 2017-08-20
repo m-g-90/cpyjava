@@ -13,7 +13,7 @@ Alternatives/Similar Projects:
 
 Features:
   - supports 'isinstanceof'
-  - conversion from/to java primitive types (for now excluding arrays) and java.lang.String
+  - conversion from/to java primitive types and java.lang.String
   - Any other class/object is wrapped and supported via reflection 
   - "brute force" approach to handle function overloading: functions gets selected if the arguments can be converted to the required types
   - decorators to customize getter,setter and call functionality
