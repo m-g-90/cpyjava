@@ -125,7 +125,11 @@ static PyObject * pyjava_callHelperObject(JNIEnv * env,jmethodID meth,jobject ob
     if (pyjava_exception_java2python(env)){
         return NULL;
     }
-    return pyjava_asPyObject(env,ret);
+    PyObject * pret = pyjava_asPyObject(env,ret);
+    if (ret){
+        PYJAVA_ENVCALL(env,DeleteLocalRef,ret);
+    }
+    return pret;
 }
 static PyObject * pyjava_callHelperConstructor(JNIEnv * env,jmethodID meth,jobject obj,jclass klass,jvalue * args){
 (void)obj;
@@ -135,7 +139,11 @@ static PyObject * pyjava_callHelperConstructor(JNIEnv * env,jmethodID meth,jobje
     if (pyjava_exception_java2python(env)){
         return NULL;
     }
-    return pyjava_asPyObject(env,ret);
+    PyObject * pret = pyjava_asPyObject(env,ret);
+    if (ret){
+        PYJAVA_ENVCALL(env,DeleteLocalRef,ret);
+    }
+    return pret;
 }
 
 
@@ -243,7 +251,11 @@ static PyObject * pyjava_callHelperStaticObject(JNIEnv * env,jmethodID meth,jobj
     if (pyjava_exception_java2python(env)){
         return NULL;
     }
-    return pyjava_asPyObject(env,ret);
+    PyObject * pret = pyjava_asPyObject(env,ret);
+    if (ret){
+        PYJAVA_ENVCALL(env,DeleteLocalRef,ret);
+    }
+    return pret;
 }
 
 
