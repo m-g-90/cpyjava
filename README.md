@@ -47,7 +47,7 @@ Examples:
     print(map["key"])
 
   
-  Compiling the Project:
-    - Open the cpyjava.pro project in qtcreator
-    - Adapt the java and python paths/versions 
+Compiling the Project:
+  - Open the cpyjava.pro project in qtcreator
+  - Adapt the java and python paths/versions 
    
