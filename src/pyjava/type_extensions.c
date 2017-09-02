@@ -151,7 +151,17 @@ static Py_ssize_t java_util_List_Length(PyObject * o){
 }
 
 static PyObject * java_util_List_Concat(PyObject * o,PyObject * val){
-    return member_call1((PyObject *)o,"add",val);
+    return member_call1((PyObject *)o,"addAll",val);
+}
+
+static int java_util_Set_contains(PyObject * o,PyObject * val){
+    PyObject * ret = member_call1((PyObject *)o,"contains",val);
+    if (!ret){
+        return -1;
+    }
+    int result = ret==Py_True ? 1 : 0;
+    Py_DecRef(ret);
+    return result;
 }
 
 static PyObject * java_util_List_Item(PyObject *o,Py_ssize_t index){
@@ -190,6 +200,19 @@ static PySequenceMethods java_util_List = {
     &java_util_List_Ass_Item,// ssizeobjargproc sq_ass_item,
     0,// void *was_sq_ass_slice,
     0,// objobjproc sq_contains,
+    0,// binaryfunc sq_inplace_concat,
+    0// ssizeargfunc sq_inplace_repeat
+};
+
+static PySequenceMethods java_util_Set = {
+    &java_util_List_Length,// lenfunc sq_length,
+    &java_util_List_Concat,// binaryfunc sq_concat,
+    0,// ssizeargfunc sq_repeat,
+    0,// ssizeargfunc sq_item,
+    0,// void *was_sq_slice,
+    0,// ssizeobjargproc sq_ass_item,
+    0,// void *was_sq_ass_slice,
+    &java_util_Set_contains,// objobjproc sq_contains,
     0,// binaryfunc sq_inplace_concat,
     0// ssizeargfunc sq_inplace_repeat
 };
@@ -567,7 +590,7 @@ void pyjava_init_type_extensions(JNIEnv * env,PyJavaType * type){
     } else if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_list_class(env))) { // check if this is a list
         type->pto.tp_as_sequence = &java_util_List;
     } else if (PYJAVA_ENVCALL(env,IsAssignableFrom,type->klass,pyjava_set_class(env))) {
-        //todo support set
+        type->pto.tp_as_sequence = &java_util_Set;
     } else if (type->arrayklass){
         switch (type->arrayntype){
         case 'Z':

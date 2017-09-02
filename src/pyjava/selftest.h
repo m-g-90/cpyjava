@@ -205,6 +205,17 @@ static const char * pyjava_selftests[] = {
     "assert 116==barray[0] , 'byte array access failed (1)'\n"
     "barray[0] = 120\n"
     "assert 120==barray[0] , 'byte array access failed (2)'\n"
+
+    ,
+    "import cpyjava\n"
+    "list = cpyjava.packages.java.util.HashSet()\n"
+    "list.add('2')\n"
+    "list.add('3')\n"
+    "list.add('4')\n"
+    "assert '3' in list, 'set test failed (1)'\n"
+    "assert list.size() == len(list), 'set test failed (2)'\n"
+
+
     ,
     NULL
 };
