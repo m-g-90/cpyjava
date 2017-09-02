@@ -22,7 +22,7 @@ Features:
   
 Passing python objects to java is currently not planned. Passing python objects that are wrapped java objects is of course possible.
 
-This module is written exclusively in C. The build system for python modules is not yet implemented. Use the executable project to test this library. Alternatively, this library can be added easily to a project with an embedded python interpreter. 
+This module is written exclusively in C. You can use the setup.py to install the module or use the executable project to test this library. Alternatively, this library can be added easily to a project with an embedded python interpreter. Java is required to run this. In case setup.py is used, Java must be installed before setup.py is executed.
 
 Note: the project currently uses a .pro file (qmake/Qt), but doesn't require/use Qt.
 
@@ -48,6 +48,6 @@ Examples:
 
   
   Compiling the Project:
-    1. Open the cpyjava.pro project in qtcreator
-    2. Adapt the java and python paths/versions 
+    - Open the cpyjava.pro project in qtcreator
+    - Adapt the java and python paths/versions 
    
