@@ -149,12 +149,20 @@ PYJAVA_DLLSPEC int pyjava_initJVM() {
             } else {
                 PYJAVA_ENVCALL(vm,DetachCurrentThread);
                 pyjava_setJVM(vm);
+                Py_AtExit(&pyjava_destroyJVM);
                 return 1;
             }
         }
     }
 
     return 0;
+}
+
+PYJAVA_DLLSPEC void pyjava_destroyJVM(void){
+    if (pyjava_jvmptr){
+        PYJAVA_ENVCALL(pyjava_jvmptr,DestroyJavaVM);
+        pyjava_jvmptr = NULL;
+    }
 }
 
 PYJAVA_DLLSPEC JavaVM * pyjava_getJVM(){

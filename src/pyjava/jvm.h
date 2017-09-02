@@ -28,6 +28,7 @@ extern "C"{
 PYJAVA_DLLSPEC JavaVM * pyjava_getJVM();
 PYJAVA_DLLSPEC void pyjava_setJVM(JavaVM * jvm);
 PYJAVA_DLLSPEC int pyjava_initJVM();
+PYJAVA_DLLSPEC void pyjava_destroyJVM(void);
 PYJAVA_DLLSPEC void pyjava_checkJNI(int enable);
 
 PYJAVA_DLLSPEC void _pyjava_start_java(JNIEnv ** env, int * borrowed);
