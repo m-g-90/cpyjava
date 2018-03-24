@@ -52,7 +52,7 @@ def findJavaFolders():
                     java_folders.append(os.path.dirname(os.path.abspath(path)))
                     java_folders.append(os.path.dirname(java_folders[-1]))
         except Exception as ex:
-            print(repr(ex))
+            print("Attempt to extract jvm path failed for "+executable+": "+repr(ex))
 
     return java_folders
 
@@ -85,7 +85,7 @@ def findJavaLibrary():
 try:
     jvmfile = "\"\""+findJavaLibrary().replace("\\",'\\\\')+"\"\""
 except:
-    jvmfile = "\"\""
+    jvmfile = "\"\"\"\""
 
 cpyjava_module = Extension('cpyjava',
                     define_macros = [('PYJAVA_SETUP_PY', '1',),('PYJAVA_EXPORT','1'),('PYJAVA_JVM_LOCATIONHINT',jvmfile),('PYJAVA_JVM_LOADLIBRARY','1')],
