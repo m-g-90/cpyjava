@@ -1,0 +1,3 @@
+prune *
+recursive-include src *.c *.h
+exclude */main.c
