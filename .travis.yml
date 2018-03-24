@@ -59,6 +59,8 @@ addons:
     build_command_prepend: qmake -makefile -o Makefile cpyjava.pro
     build_command: make
     branch_pattern: coverity_scan
+    
+before_deploy: "pip install --upgrade pip setuptools twine wheel"
 
 deploy:
   provider: pypi
