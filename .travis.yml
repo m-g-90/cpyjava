@@ -59,3 +59,12 @@ addons:
     build_command_prepend: qmake -makefile -o Makefile cpyjava.pro
     build_command: make
     branch_pattern: coverity_scan
+
+deploy:
+  provider: pypi
+  user: "m-g-90"
+  password:
+    secure: "1lB+mdWeMuppS2Tegqbb4Of6A1X+qdsZ/HwJr49APNuCFQwgwj87fCi/iPm+PIv0Ji234C6ow5wavdif75psJ10r+3YaRfLJc1LNHSZNdTjGUgFvdivBsqZzDUM8P2Bcte+rqWn48vP/wqYftnfCEOlFGJNIUb1TCFkULEabWyR9NyGpI8YsZqvv6nX3mP86oezd1s/zjWB/KCoaknedXlNuwW5fk2jB/XW4N2YMTiJHUAFdcYzBfpoZd3ao53cPdFMTfH9qOdbNyFOs9LFpCTvMbn8wDpli/X9b4VmeFierAfFnvPL/VkfnWNonrP1l03V6JDGNydNbZNWEJQSef5HaGqOw0HcAws315bwAAFlaVhag8k2qOKagqcJpIPxZi2hsMnTJWukHRFicjFVVSfzaVmiQfXgAx1/o0GpJLYFphyhrd79mSvCH6GHAlNll+UZs3Ecdkzyw9ljObs/tu8xJ3a8SoPfQt/Zfc/q/dkBUGuIIGBJkMP8zZMmm8SU3G3GhHfFKYq76am8vDdTZzXjVUUv/awt2GV4urcc+RvxAIsrA0XylgcuZVtll84Pj2c7nmhWn7e7NtEXvdmB5Ve6VJsDmc6TPt8fM/OKi6Cw7z6jD+SPY1AfnJk3KEh8KjrPYIZCALulcKMHRxAx4/O9DinKynZiiymdIHUpcnGc="
+  server: https://test.pypi.org
+  on:
+    branch: master
