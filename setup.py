@@ -82,20 +82,22 @@ def findJavaLibrary():
 
     raise Exception('JVM search failed: no jvm'+extension+' found. (Searchpath: '+(';'.join(java_folders))+')')
 
+define_macros = [('PYJAVA_SETUP_PY', '1',),('PYJAVA_EXPORT','1'),('PYJAVA_JVM_LOADLIBRARY','1')]
 try:
     jvmfile = "\"\""+findJavaLibrary().replace("\\",'\\\\')+"\"\""
+    define_macros.append(('PYJAVA_JVM_LOCATIONHINT',jvmfile))
 except:
-    jvmfile = "\"\"\"\""
+    pass
 
 cpyjava_module = Extension('cpyjava',
-                    define_macros = [('PYJAVA_SETUP_PY', '1',),('PYJAVA_EXPORT','1'),('PYJAVA_JVM_LOCATIONHINT',jvmfile),('PYJAVA_JVM_LOADLIBRARY','1')],
+                    define_macros = define_macros,
                     include_dirs = [os.path.join(sourcedir,'src')],
                     libraries = [],
                     library_dirs = [],
                     sources = [os.path.join(os.path.join(os.path.join(sourcedir,'src'),'pyjava'),x) for x in os.listdir(os.path.join(os.path.join(sourcedir,'src'),'pyjava')) if x.endswith(".c")])
 
 setup (name = 'cpyjava',
-       version = '0.6.2',
+       version = '0.6.3',
        description = 'python extension to use java objects',
        author = 'Marc Greim',
        author_email = '',
