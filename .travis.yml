@@ -60,7 +60,7 @@ addons:
     build_command: make
     branch_pattern: coverity_scan
     
-before_deploy: "pip install --upgrade pip setuptools twine wheel"
+before_deploy: "sudo pip install --upgrade pip setuptools twine wheel"
 
 deploy:
   provider: pypi
