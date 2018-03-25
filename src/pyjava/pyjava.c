@@ -196,6 +196,81 @@ static PyObject * pyjava_with_java_exit(PyObject * self, PyObject *_args){
     pyjava_exit();
     Py_RETURN_TRUE;
 }
+static PyObject * pyjava_monitor_enter(PyObject * self, PyObject *_args){
+    (void)self;
+
+    PyObject * obj = NULL;
+    if (!PyArg_ParseTuple(_args, "O", &obj)){
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_Exception,"cpyjava._monitor_enter takes 1 argument.");
+        return NULL;
+    }
+
+    int error = 0;
+
+    PYJAVA_START_JAVA(env);
+
+    jobject jobj = NULL;
+
+    if (PyType_CheckExact(obj) && pyjava_isJavaClass((PyTypeObject*)obj)){
+        jobj = (jobject) ((PyJavaType*)obj)->klass;
+    } else if (PyType_CheckExact(obj->ob_type) && pyjava_isJavaClass((PyTypeObject*)obj->ob_type)){
+        jobj = (jobject) ((PyJavaObject*)obj)->obj;
+    } else {
+        PyErr_SetString(PyExc_Exception,"cpyjava._monitor_exit takes 1 argument.");
+        error = 1;
+    }
+
+    if (jobj && !error){
+        PYJAVA_ENVCALL(env,MonitorEnter,jobj);
+    }
+
+    PYJAVA_END_JAVA(env);
+
+    if (error){
+        return NULL;
+    } else {
+        Py_RETURN_TRUE;
+    }
+}
+static PyObject * pyjava_monitor_exit(PyObject * self, PyObject *_args){
+    (void)self;
+
+    PyObject * obj = NULL;
+    PyObject * dc[3];
+    if (!PyArg_ParseTuple(_args, "OOOO", &obj,dc,dc+1,dc+2)){
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_Exception,"cpyjava._monitor_enter takes 1 argument.");
+        return NULL;
+    }
+
+    int error = 0;
+
+    PYJAVA_START_JAVA(env);
+
+    jobject jobj = NULL;
+
+    if (PyType_CheckExact(obj) && pyjava_isJavaClass((PyTypeObject*)obj)){
+        jobj = (jobject) ((PyJavaType*)obj)->klass;
+    } else if (PyType_CheckExact(obj->ob_type) && pyjava_isJavaClass((PyTypeObject*)obj->ob_type)){
+        jobj = (jobject) ((PyJavaObject*)obj)->obj;
+    } else {
+        PyErr_SetString(PyExc_Exception,"cpyjava._monitor_enter takes 1 argument.");
+        error = 1;
+    }
+
+    if (jobj && !error){
+        PYJAVA_ENVCALL(env,MonitorExit,jobj);
+    }
+
+    PYJAVA_END_JAVA(env);
+
+    if (error){
+        return NULL;
+    } else {
+        Py_RETURN_TRUE;
+    }
+}
 
 static PyObject * pyjava_selftest(PyObject *  self,PyObject * _args){
     (void)self;
@@ -537,6 +612,8 @@ static PyMethodDef cpyjavamethods[] = {
     {"writeField",  pyjava_writeField, METH_VARARGS,"writeField(obj,fieldName,value): set the value of a java field."},
     {"_with_java_enter",  pyjava_with_java_enter, METH_NOARGS,"internal function"},
     {"_with_java_exit",  pyjava_with_java_exit, METH_NOARGS,"internal function"},
+    {"_monitor_enter",  pyjava_monitor_enter, METH_VARARGS,"internal function"},
+    {"_monitor_exit",  pyjava_monitor_exit, METH_VARARGS,"internal function"},
     {"setCallDecorator",pyjava_setCallDecorator,METH_VARARGS,"setCallDecorator(javaType,callback): adds a decorator callback that will be called instead. callback should expect the arguments (self,decoself,*args,**kwargs). decoself is a special object that points to the same java object as the decorated self object, but decorators are disabled if decoself is used."},
     {"setGetterDecorator",pyjava_setGetterDecorator,METH_VARARGS,"setGetterDecorator(javaType,callback): adds a decorator callback that will be called instead. callback should expect the arguments (self,decoself,key). decoself is a special object that points to the same java object as the decorated self object, but decorators are disabled if decoself is used."},
     {"setSetterDecorator",pyjava_setSetterDecorator,METH_VARARGS,"setSetterDecorator(javaType,callback): adds a decorator callback that will be called instead. callback should expect the arguments (self,decoself,key,value) AND (self,decoself,key). The later one is nedded to support 'del'. decoself is a special object that points to the same java object as the decorated self object, but decorators are disabled if decoself is used."},
@@ -666,6 +743,29 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
                 Py_DecRef(jpclass);
             }
         }
+		{
+            const char * classdef =
+                    "class synchronized:\n"
+                    "\n"
+                    "    _import = __builtins__['__import__']\n"
+                    "\n"
+                    "    def __init__(self,obj):\n"
+                    "        self.__obj = obj\n"
+                    "\n"
+                    "    def __enter__(self):\n"
+					"        self._import('cpyjava')._with_java_enter()\n"
+                    "        self._import('cpyjava')._monitor_enter(self.__obj)\n"
+                    "\n"
+                    "    def __exit__(self,dc0,dc1,dc2):\n"
+                    "        self._import('cpyjava')._monitor_exit(self.__obj,dc0,dc1,dc2)\n"
+                    "        self._import('cpyjava')._with_java_exit()\n"
+                    "\n"
+                    ;
+            PyObject* jpclass = PyRun_String(classdef, Py_single_input, globals, ctx);
+            if (jpclass){
+                Py_DecRef(jpclass);
+            }
+        }
         if (!PyErr_Occurred()){
             PyObject * packages = PyRun_String("JavaPackage", Py_eval_input, globals, ctx);
             if (packages){
@@ -676,6 +776,12 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
             PyObject * packages = PyRun_String("env()", Py_eval_input, globals, ctx);
             if (packages){
                 PyObject_SetAttrString(ret,"env",packages);
+            }
+        }
+        if (!PyErr_Occurred()){
+            PyObject * packages = PyRun_String("synchronized", Py_eval_input, globals, ctx);
+            if (packages){
+                PyObject_SetAttrString(ret,"synchronized",packages);
             }
         }
         if (!PyErr_Occurred()){
