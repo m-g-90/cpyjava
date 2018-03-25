@@ -49,6 +49,7 @@ branches:
   only:
   - master
   - coverity_scan
+  - /^\d+\.\d+(\.\d+)?$/
 
 addons:
   coverity_scan:
