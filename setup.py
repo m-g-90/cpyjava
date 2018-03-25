@@ -97,7 +97,7 @@ cpyjava_module = Extension('cpyjava',
                     sources = [os.path.join(os.path.join(os.path.join(sourcedir,'src'),'pyjava'),x) for x in os.listdir(os.path.join(os.path.join(sourcedir,'src'),'pyjava')) if x.endswith(".c")])
 
 setup (name = 'cpyjava',
-       version = '0.6.4',
+       version = '0.6.4', 
        description = 'python extension to use java objects',
        author = 'Marc Greim',
        author_email = '',
