@@ -7,6 +7,11 @@
 
 cpyjava is a python extension/module to enable use of java objects from python (cpython). This extension uses JNI to interface with java objects. 
 
+cpyjava is available via pip. Please note that at this point in time, no prebuild wheel is available. See [here](https://wiki.python.org/moin/WindowsCompilers) for Windows compilers.
+   
+    pip install cpyjava
+    
+    
 Alternatives/Similar Projects:
   - JPype also allows cpython to interface with java objects via JNI, however it has the issue that object classes are referenced by name (not by the class object) which leads to issues in more complicated class loader structures.
   - Py4j is an python module that uses sockets (not JNI) to communicate between python and java.
@@ -64,4 +69,8 @@ Examples:
 Compiling the Project:
   - Open the cpyjava.pro project in qtcreator
   - Adapt the java and python paths/versions 
+  
+  or
+  
+  - pip install cpyjava
    
