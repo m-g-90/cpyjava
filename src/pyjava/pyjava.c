@@ -657,7 +657,7 @@ PYJAVA_DLLSPEC PyObject * PyInit_cpyjava(void) {
                     "    def __enter__(self):\n"
                     "        self._import('cpyjava')._with_java_enter()\n"
                     "\n"
-                    "    def __exit__(self):\n"
+                    "    def __exit__(self,dc0,dc1,dc2):\n"
                     "        self._import('cpyjava')._with_java_exit(dc0,dc1,dc2)\n"
                     "\n"
                     ;
