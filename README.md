@@ -42,10 +42,24 @@ Examples:
     
     import cpyjava
     map = cpyjava.packages.java.util.HashMap() # calls the java constructor
-    map.put("key","value") # NOTE: due to currently limited conversion support, only strings can be used
+    map.put("key","value") 
     repr(map)
     print(map["key"])
-
+    
+ Accelerate interaction with java by keeping the current thread attached to the jvm:
+    
+    import cpyjava
+    with cpyjava.env:
+      #some code that interacts with java objects
+      pass
+      
+ Creating a "synchronized" block in python on a java object:
+    
+    import cpyjava
+    map = cpyjava.packages.java.util.HashMap() # create a java object
+    with cpyjava.synchronized(map):
+      map.put("key",1)
+      
   
 Compiling the Project:
   - Open the cpyjava.pro project in qtcreator
