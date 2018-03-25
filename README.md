@@ -7,6 +7,11 @@
 
 cpyjava is a python extension/module to enable use of java objects from python (cpython). This extension uses JNI to interface with java objects. 
 
+cpyjava is available via pip. Please note that at this point in time, no prebuild wheel is available. See [here](https://wiki.python.org/moin/WindowsCompilers) for Windows compilers.
+   
+    pip install cpyjava
+    
+    
 Alternatives/Similar Projects:
   - JPype also allows cpython to interface with java objects via JNI, however it has the issue that object classes are referenced by name (not by the class object) which leads to issues in more complicated class loader structures.
   - Py4j is an python module that uses sockets (not JNI) to communicate between python and java.
@@ -42,12 +47,30 @@ Examples:
     
     import cpyjava
     map = cpyjava.packages.java.util.HashMap() # calls the java constructor
-    map.put("key","value") # NOTE: due to currently limited conversion support, only strings can be used
+    map.put("key","value") 
     repr(map)
     print(map["key"])
-
+    
+ Accelerate interaction with java by keeping the current thread attached to the jvm:
+    
+    import cpyjava
+    with cpyjava.env:
+      #some code that interacts with java objects
+      pass
+      
+ Creating a "synchronized" block in python on a java object:
+    
+    import cpyjava
+    map = cpyjava.packages.java.util.HashMap() # create a java object
+    with cpyjava.synchronized(map):
+      map.put("key",1)
+      
   
 Compiling the Project:
   - Open the cpyjava.pro project in qtcreator
   - Adapt the java and python paths/versions 
+  
+  or
+  
+  - pip install cpyjava
    
